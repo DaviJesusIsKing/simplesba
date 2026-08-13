@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+}
+
+model Establishment {
+  id           String   @id @default(cuid())
+  name         String
+  description  String
+  address      String
+  phone        String
+  whatsapp     String
+  instagram    String   @default("")
+  openDays     String   @default("1,2,3,4,5,6")
+  openTime     String   @default("09:00")
+  closeTime    String   @default("19:00")
+  primaryColor String   @default("#d4a017")
+  bgColor      String   @default("#0f0f0f")
+  cardColor    String   @default("#1a1a1a")
+  updatedAt    DateTime @updatedAt
+  services     Service[]
+  products     Product[]
+}
+
+model Service {
+  id              String        @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  duration        Int
+  active          Boolean       @default(true)
+  establishmentId String
+  establishment   Establishment @relation(fields: [establishmentId], references: [id])
+}
+
+model Product {
+  id              String        @id @default(cuid())
+  name            String
+  description     String
+  price           Float
+  stock           Int           @default(0)
+  active          Boolean       @default(true)
+  establishmentId String
+  establishment   Establishment @relation(fields: [establishmentId], references: [id])
+}

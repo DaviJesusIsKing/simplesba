@@ -1,0 +1,44 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+
+async function guard() {
+  const session = await getServerSession(authOptions);
+  if (!session) return null;
+  return session;
+}
+
+export async function GET() {
+  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const est = await prisma.establishment.findFirst();
+  return NextResponse.json(est);
+}
+
+export async function PUT(req: NextRequest) {
+  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const body = await req.json();
+  const data = {
+    name: body.name,
+    description: body.description,
+    address: body.address,
+    phone: body.phone,
+    whatsapp: body.whatsapp,
+    instagram: body.instagram || "",
+    openTime: body.openTime,
+    closeTime: body.closeTime,
+    primaryColor: body.primaryColor || "#d4a017",
+    bgColor: body.bgColor || "#0f0f0f",
+    cardColor: body.cardColor || "#1a1a1a",
+  };
+  const existing = await prisma.establishment.findFirst();
+  if (!existing) {
+    const created = await prisma.establishment.create({ data });
+    return NextResponse.json(created);
+  }
+  const updated = await prisma.establishment.update({
+    where: { id: existing.id },
+    data,
+  });
+  return NextResponse.json(updated);
+}
