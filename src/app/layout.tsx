@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import type { CSSProperties } from "react";
+import type { CSSProperties, ReactNode } from "react";
 import "./globals.css";
 import { Providers } from "@/components/Providers";
 import { prisma } from "@/lib/prisma";
@@ -12,11 +12,7 @@ export const metadata: Metadata = {
 
 export const dynamic = "force-dynamic";
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function RootLayout({ children }: { children: ReactNode }) {
   let theme = themeFromEst(null);
   try {
     const est = await prisma.establishment.findFirst();
