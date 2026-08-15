@@ -17,22 +17,23 @@ model User {
 }
 
 model Establishment {
-  id           String   @id @default(cuid())
+  id           String        @id @default(cuid())
   name         String
   description  String
   address      String
   phone        String
   whatsapp     String
-  instagram    String   @default("")
-  openDays     String   @default("1,2,3,4,5,6")
-  openTime     String   @default("09:00")
-  closeTime    String   @default("19:00")
-  primaryColor String   @default("#d4a017")
-  bgColor      String   @default("#0f0f0f")
-  cardColor    String   @default("#1a1a1a")
-  updatedAt    DateTime @updatedAt
+  instagram    String        @default("")
+  openDays     String        @default("1,2,3,4,5,6")
+  openTime     String        @default("09:00")
+  closeTime    String        @default("19:00")
+  primaryColor String        @default("#d4a017")
+  bgColor      String        @default("#0f0f0f")
+  cardColor    String        @default("#1a1a1a")
+  updatedAt    DateTime      @updatedAt
   services     Service[]
   products     Product[]
+  appointments Appointment[]
 }
 
 model Service {
@@ -44,6 +45,7 @@ model Service {
   active          Boolean       @default(true)
   establishmentId String
   establishment   Establishment @relation(fields: [establishmentId], references: [id])
+  appointments    Appointment[]
 }
 
 model Product {
@@ -55,4 +57,20 @@ model Product {
   active          Boolean       @default(true)
   establishmentId String
   establishment   Establishment @relation(fields: [establishmentId], references: [id])
+}
+
+model Appointment {
+  id              String        @id @default(cuid())
+  clientName      String
+  clientPhone     String
+  date            String
+  time            String
+  status          String        @default("pending")
+  createdAt       DateTime      @default(now())
+  serviceId       String
+  service         Service       @relation(fields: [serviceId], references: [id])
+  establishmentId String
+  establishment   Establishment @relation(fields: [establishmentId], references: [id])
+
+  @@unique([establishmentId, date, time])
 }

@@ -13,6 +13,7 @@ export function Header({ name }: { name: string }) {
           <span>{name}</span>
         </Link>
         <nav className="hidden gap-6 text-sm md:flex">
+          <a href="/agendar" className="hover:text-[var(--primary)]">Agendar</a>
           <a href="#servicos" className="hover:text-[var(--primary)]">Serviços</a>
           <a href="#produtos" className="hover:text-[var(--primary)]">Produtos</a>
           <a href="#contato" className="hover:text-[var(--primary)]">Contato</a>
@@ -24,6 +25,7 @@ export function Header({ name }: { name: string }) {
       </div>
       {open && (
         <nav className="flex flex-col gap-3 border-t border-[#333] px-4 py-3 md:hidden">
+          <a href="/agendar" onClick={() => setOpen(false)}>Agendar</a>
           <a href="#servicos" onClick={() => setOpen(false)}>Serviços</a>
           <a href="#produtos" onClick={() => setOpen(false)}>Produtos</a>
           <a href="#contato" onClick={() => setOpen(false)}>Contato</a>

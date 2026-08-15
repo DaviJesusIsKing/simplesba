@@ -108,16 +108,19 @@ export default async function HomePage() {
               "Cortes masculinos, barba e cuidados pessoais."}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
+            <a href="/agendar" className="btn btn-primary">
+              Agendar horário
+            </a>
+            <a href="#servicos" className="btn btn-secondary">
+              Ver serviços
+            </a>
             <a
               href={waLink}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn btn-primary"
+              className="btn btn-secondary"
             >
-              Agendar no WhatsApp
-            </a>
-            <a href="#servicos" className="btn btn-secondary">
-              Ver serviços
+              WhatsApp
             </a>
           </div>
         </div>
@@ -141,11 +144,7 @@ export default async function HomePage() {
                 <span className="text-neutral-500">{s.duration} min</span>
               </div>
               <a
-                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(
-                  `Olá! Quero agendar: ${s.name}`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/agendar"
                 className="btn btn-primary mt-4 w-full text-sm"
               >
                 Agendar

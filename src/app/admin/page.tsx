@@ -4,16 +4,38 @@ import Link from "next/link";
 export const dynamic = "force-dynamic";
 
 export default async function AdminDashboard() {
-  const [services, products, est] = await Promise.all([
-    prisma.service.count(),
-    prisma.product.count(),
-    prisma.establishment.findFirst(),
-  ]);
+  let services = 0;
+  let products = 0;
+  let appointments = 0;
+  let pending = 0;
+  let estName = "—";
+
+  try {
+    const [s, p, a, pend, est] = await Promise.all([
+      prisma.service.count(),
+      prisma.product.count(),
+      prisma.appointment.count(),
+      prisma.appointment.count({ where: { status: "pending" } }),
+      prisma.establishment.findFirst(),
+    ]);
+    services = s;
+    products = p;
+    appointments = a;
+    pending = pend;
+    estName = est?.name || "—";
+  } catch (e) {
+    console.error(e);
+  }
 
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Dashboard</h1>
-      <div className="grid gap-4 sm:grid-cols-3 mb-8">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        <div className="card">
+          <p className="text-sm text-neutral-400">Agendamentos</p>
+          <p className="text-3xl font-bold text-[#d4a017]">{appointments}</p>
+          <p className="text-xs text-neutral-500 mt-1">{pending} pendente(s)</p>
+        </div>
         <div className="card">
           <p className="text-sm text-neutral-400">Serviços</p>
           <p className="text-3xl font-bold text-[#d4a017]">{services}</p>
@@ -24,14 +46,25 @@ export default async function AdminDashboard() {
         </div>
         <div className="card">
           <p className="text-sm text-neutral-400">Estabelecimento</p>
-          <p className="text-lg font-semibold">{est?.name || "—"}</p>
+          <p className="text-lg font-semibold">{estName}</p>
         </div>
       </div>
       <div className="flex flex-wrap gap-3">
-        <Link href="/admin/servicos" className="btn btn-primary">Gerenciar serviços</Link>
-        <Link href="/admin/produtos" className="btn btn-secondary">Gerenciar produtos</Link>
-        <Link href="/admin/configuracoes" className="btn btn-secondary">Configurações</Link>
-        <Link href="/" className="btn btn-secondary">Ver site</Link>
+        <Link href="/admin/agendamentos" className="btn btn-primary">
+          Ver agendamentos
+        </Link>
+        <Link href="/admin/servicos" className="btn btn-secondary">
+          Serviços
+        </Link>
+        <Link href="/admin/produtos" className="btn btn-secondary">
+          Produtos
+        </Link>
+        <Link href="/admin/configuracoes" className="btn btn-secondary">
+          Configurações
+        </Link>
+        <Link href="/" className="btn btn-secondary">
+          Ver site
+        </Link>
       </div>
     </div>
   );

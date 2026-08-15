@@ -8,12 +8,14 @@ import {
   Scissors,
   Package,
   Settings,
+  Calendar,
   LogOut,
   Loader2,
 } from "lucide-react";
 
 const nav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/agendamentos", label: "Agendamentos", icon: Calendar },
   { href: "/admin/servicos", label: "Serviços", icon: Scissors },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
