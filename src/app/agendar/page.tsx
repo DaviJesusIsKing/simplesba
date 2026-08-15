@@ -23,6 +23,7 @@ export default function AgendarPage() {
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
   const [closedDay, setClosedDay] = useState(false);
+  const [timesError, setTimesError] = useState("");
 
   useEffect(() => {
     fetch("/api/admin/services")
@@ -49,12 +50,16 @@ export default function AgendarPage() {
     setLoadingTimes(true);
     setTime("");
     setClosedDay(false);
+    setTimesError("");
     fetch(`/api/available-times?date=${date}`)
-      .then((r) => r.json())
-      .then((d) => {
+      .then(async (r) => {
+        const d = await r.json();
         setTimes(d.times || []);
         setClosedDay(!!d.closed);
+        if (d.error) setTimesError(d.error);
+        if (d.message && d.closed) setTimesError(d.message);
       })
+      .catch(() => setTimesError("Erro ao carregar horários"))
       .finally(() => setLoadingTimes(false));
   }, [date]);
 
@@ -84,7 +89,7 @@ export default function AgendarPage() {
         <div className="card max-w-md w-full text-center space-y-4">
           <CheckCircle className="mx-auto text-green-400" size={48} />
           <h1 className="text-xl font-bold">Agendamento enviado!</h1>
-          <p className="text-neutral-400 text-sm">
+          <p className="text-[var(--muted-fg)] text-sm">
             {clientName}, seu horário em {date} às {time} foi registrado.
             Aguarde a confirmação da barbearia.
           </p>
@@ -99,7 +104,7 @@ export default function AgendarPage() {
   return (
     <div className="min-h-screen px-4 py-10">
       <div className="mx-auto max-w-lg">
-        <Link href="/" className="inline-flex items-center gap-2 text-sm text-neutral-400 hover:text-[var(--primary)] mb-6">
+        <Link href="/" className="inline-flex items-center gap-2 text-sm text-[var(--muted-fg)] hover:text-[var(--primary)] mb-6">
           <ArrowLeft size={16} /> Voltar
         </Link>
         <h1 className="text-2xl font-bold mb-6">Agendar horário</h1>
@@ -144,7 +149,7 @@ export default function AgendarPage() {
                   <p className="text-sm text-amber-400">Fechado neste dia da semana. Escolha outro dia.</p>
                 )}
                 {!closedDay && times.length === 0 && date && (
-                  <p className="text-sm text-neutral-500">Nenhum horário disponível neste dia.</p>
+                  <p className="text-sm text-[var(--muted-fg)]">Nenhum horário disponível neste dia.</p>
                 )}
                 {times.map((t) => (
                   <button
@@ -154,7 +159,7 @@ export default function AgendarPage() {
                     className={`rounded-lg px-3 py-1.5 text-sm border ${
                       time === t
                         ? "border-[var(--primary)] bg-[var(--primary)] text-black"
-                        : "border-[#333] text-neutral-300 hover:border-[var(--primary)]"
+                        : "border-[var(--border)] text-[var(--fg)] hover:border-[var(--primary)]"
                     }`}
                   >
                     {t}

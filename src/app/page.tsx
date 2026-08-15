@@ -73,27 +73,10 @@ export default async function HomePage() {
     "Olá! Gostaria de agendar um horário."
   )}`;
 
-  const primary = est?.primaryColor || "#d4a017";
-  const bg = est?.bgColor || "#0f0f0f";
-  const card = est?.cardColor || "#1a1a1a";
-
-  const isLight =
-    bg.toLowerCase().startsWith("#f") ||
-    bg.toLowerCase() === "#ffffff" ||
-    bg.toLowerCase() === "#fdf2f8";
-  const themeStyle: Record<string, string> = {
-    "--primary": primary,
-    "--bg": bg,
-    "--card": card,
-    "--fg": isLight ? "#111111" : "#f5f5f5",
-    "--muted": isLight ? "#f3f4f6" : "#262626",
-    "--border": isLight ? "#e5e7eb" : "#333333",
-    "--primary-fg": "#0f0f0f",
-  };
 
 
   return (
-    <div style={themeStyle}>
+    <div>
       <Header name={name} />
 
       {error && (
@@ -111,7 +94,7 @@ export default async function HomePage() {
             ESTILO & QUALIDADE
           </p>
           <h1 className="mb-4 text-4xl font-bold sm:text-5xl">{name}</h1>
-          <p className="mx-auto mb-8 max-w-xl text-neutral-400">
+          <p className="mx-auto mb-8 max-w-xl text-muted">
             {est?.description ||
               "Cortes masculinos, barba e cuidados pessoais."}
           </p>
@@ -142,14 +125,14 @@ export default async function HomePage() {
           {services.map((s) => (
             <div key={s.id} className="card">
               <h3 className="text-lg font-semibold">{s.name}</h3>
-              <p className="mt-1 mb-3 text-sm text-neutral-400">
+              <p className="mt-1 mb-3 text-sm text-muted">
                 {s.description}
               </p>
               <div className="flex items-center justify-between text-sm">
                 <span className="font-semibold text-primary">
                   R$ {s.price.toFixed(2)}
                 </span>
-                <span className="text-neutral-500">{s.duration} min</span>
+                <span className="text-muted">{s.duration} min</span>
               </div>
               <a
                 href="/agendar"
@@ -160,7 +143,7 @@ export default async function HomePage() {
             </div>
           ))}
           {services.length === 0 && (
-            <p className="text-neutral-500">Nenhum serviço cadastrado.</p>
+            <p className="text-muted">Nenhum serviço cadastrado.</p>
           )}
         </div>
       </section>
@@ -171,14 +154,14 @@ export default async function HomePage() {
           {products.map((p) => (
             <div key={p.id} className="card">
               <h3 className="font-semibold">{p.name}</h3>
-              <p className="mt-1 mb-3 text-sm text-neutral-400">
+              <p className="mt-1 mb-3 text-sm text-muted">
                 {p.description}
               </p>
               <div className="mb-3 flex items-center justify-between text-sm">
                 <span className="font-semibold text-primary">
                   R$ {p.price.toFixed(2)}
                 </span>
-                <span className="text-neutral-500">Estoque: {p.stock}</span>
+                <span className="text-muted">Estoque: {p.stock}</span>
               </div>
               <a
                 href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(
@@ -193,7 +176,7 @@ export default async function HomePage() {
             </div>
           ))}
           {products.length === 0 && (
-            <p className="text-neutral-500">Nenhum produto cadastrado.</p>
+            <p className="text-muted">Nenhum produto cadastrado.</p>
           )}
         </div>
       </section>
@@ -205,7 +188,7 @@ export default async function HomePage() {
             <MapPin className="shrink-0 text-primary" size={20} />
             <div>
               <p className="text-sm font-medium">Endereço</p>
-              <p className="text-sm text-neutral-400">
+              <p className="text-sm text-muted">
                 {est?.address || "—"}
               </p>
             </div>
@@ -214,7 +197,7 @@ export default async function HomePage() {
             <Clock className="shrink-0 text-primary" size={20} />
             <div>
               <p className="text-sm font-medium">Horário</p>
-              <p className="text-sm text-neutral-400">
+              <p className="text-sm text-muted">
                 {est?.openTime || "09:00"} – {est?.closeTime || "19:00"}
               </p>
             </div>
@@ -223,7 +206,7 @@ export default async function HomePage() {
             <Phone className="shrink-0 text-primary" size={20} />
             <div>
               <p className="text-sm font-medium">Telefone</p>
-              <p className="text-sm text-neutral-400">{est?.phone || "—"}</p>
+              <p className="text-sm text-muted">{est?.phone || "—"}</p>
             </div>
           </div>
           {est?.instagram && (
@@ -231,7 +214,7 @@ export default async function HomePage() {
               <Instagram className="shrink-0 text-primary" size={20} />
               <div>
                 <p className="text-sm font-medium">Instagram</p>
-                <p className="text-sm text-neutral-400">@{est.instagram}</p>
+                <p className="text-sm text-muted">@{est.instagram}</p>
               </div>
             </div>
           )}
