@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Garante que o Prisma funcione no ambiente serverless da Amplify
+  serverExternalPackages: ["@prisma/client", "prisma"],
 };
 
 export default nextConfig;

@@ -54,12 +54,12 @@ async function loadData(): Promise<{
     return { est, services, products };
   } catch (e) {
     console.error("DB error:", e);
+    const msg = e instanceof Error ? e.message : String(e);
     return {
       est: null,
       services: [],
       products: [],
-      error:
-        "Banco de dados não inicializado. Rode: npx prisma db push && npx tsx prisma/seed.ts",
+      error: `Erro no banco: ${msg}`,
     };
   }
 }
