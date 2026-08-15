@@ -123,7 +123,7 @@ export default function ServicosPage() {
             <div key={s.id} className="card flex items-center justify-between gap-3">
               <div>
                 <p className="font-medium">{s.name}</p>
-                <p className="text-sm text-neutral-400">
+                <p className="text-sm text-[var(--muted-fg)]">
                   R$ {s.price.toFixed(2)} · {s.duration} min
                 </p>
               </div>
@@ -137,7 +137,7 @@ export default function ServicosPage() {
               </div>
             </div>
           ))}
-          {items.length === 0 && <p className="text-neutral-500">Nenhum serviço.</p>}
+          {items.length === 0 && <p className="text-[var(--muted-fg)]">Nenhum serviço.</p>}
         </div>
       )}
     </div>

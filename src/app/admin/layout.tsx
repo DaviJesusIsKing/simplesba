@@ -21,6 +21,18 @@ const nav = [
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
 ];
 
+const adminTheme = {
+  ["--bg" as string]: "#0f0f0f",
+  ["--fg" as string]: "#f5f5f5",
+  ["--card" as string]: "#1a1a1a",
+  ["--card-fg" as string]: "#f5f5f5",
+  ["--muted" as string]: "#262626",
+  ["--muted-fg" as string]: "#a3a3a3",
+  ["--border" as string]: "#333333",
+  ["--primary" as string]: "#d4a017",
+  ["--primary-fg" as string]: "#0f0f0f",
+} as React.CSSProperties;
+
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
@@ -33,12 +45,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   }, [status, isLogin, router]);
 
-  if (isLogin) return <>{children}</>;
+  if (isLogin) {
+    return (
+      <div style={adminTheme} className="min-h-screen bg-[var(--bg)] text-[var(--fg)]">
+        {children}
+      </div>
+    );
+  }
 
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin text-[#d4a017]" size={32} />
+      <div style={adminTheme} className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+        <Loader2 className="animate-spin text-[var(--primary)]" size={32} />
       </div>
     );
   }
@@ -46,9 +64,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   if (!session) return null;
 
   return (
-    <div className="min-h-screen flex">
-      <aside className="hidden md:flex w-56 flex-col border-r border-[#333] bg-[#1a1a1a] p-4">
-        <p className="text-[#d4a017] font-semibold mb-6 flex items-center gap-2">
+    <div style={adminTheme} className="min-h-screen flex bg-[var(--bg)] text-[var(--fg)]">
+      <aside className="hidden md:flex w-56 flex-col border-r border-[var(--border)] bg-[var(--card)] p-4">
+        <p className="text-[var(--primary)] font-semibold mb-6 flex items-center gap-2">
           <Scissors size={18} /> Admin
         </p>
         <nav className="flex flex-col gap-1 flex-1">
@@ -60,7 +78,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm ${
-                  active ? "bg-[#d4a017]/15 text-[#d4a017]" : "text-neutral-400 hover:bg-[#262626]"
+                  active
+                    ? "bg-[var(--primary)]/15 text-[var(--primary)]"
+                    : "text-[var(--muted-fg)] hover:bg-[var(--muted)]"
                 }`}
               >
                 <Icon size={16} /> {item.label}
@@ -70,12 +90,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
-          className="flex items-center gap-2 text-sm text-neutral-500 hover:text-red-400 px-3 py-2"
+          className="flex items-center gap-2 text-sm text-[var(--muted-fg)] hover:text-red-400 px-3 py-2"
         >
           <LogOut size={16} /> Sair
         </button>
       </aside>
-      <main className="flex-1 p-4 md:p-8 overflow-auto">
+      <main className="flex-1 p-4 md:p-8 overflow-auto bg-[var(--bg)] text-[var(--fg)]">
         <div className="md:hidden flex gap-2 mb-4 overflow-x-auto pb-2">
           {nav.map((item) => (
             <Link
@@ -83,8 +103,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               href={item.href}
               className={`shrink-0 rounded-lg px-3 py-1.5 text-sm border ${
                 pathname === item.href
-                  ? "border-[#d4a017] text-[#d4a017]"
-                  : "border-[#333] text-neutral-400"
+                  ? "border-[var(--primary)] text-[var(--primary)]"
+                  : "border-[var(--border)] text-[var(--muted-fg)]"
               }`}
             >
               {item.label}

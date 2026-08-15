@@ -121,7 +121,7 @@ export default function ProdutosPage() {
             <div key={p.id} className="card flex items-center justify-between gap-3">
               <div>
                 <p className="font-medium">{p.name}</p>
-                <p className="text-sm text-neutral-400">
+                <p className="text-sm text-[var(--muted-fg)]">
                   R$ {p.price.toFixed(2)} · Estoque: {p.stock}
                 </p>
               </div>
@@ -135,7 +135,7 @@ export default function ProdutosPage() {
               </div>
             </div>
           ))}
-          {items.length === 0 && <p className="text-neutral-500">Nenhum produto.</p>}
+          {items.length === 0 && <p className="text-[var(--muted-fg)]">Nenhum produto.</p>}
         </div>
       )}
     </div>
