@@ -77,10 +77,18 @@ export default async function HomePage() {
   const bg = est?.bgColor || "#0f0f0f";
   const card = est?.cardColor || "#1a1a1a";
 
+  const isLight =
+    bg.toLowerCase().startsWith("#f") ||
+    bg.toLowerCase() === "#ffffff" ||
+    bg.toLowerCase() === "#fdf2f8";
   const themeStyle: Record<string, string> = {
     "--primary": primary,
     "--bg": bg,
     "--card": card,
+    "--fg": isLight ? "#111111" : "#f5f5f5",
+    "--muted": isLight ? "#f3f4f6" : "#262626",
+    "--border": isLight ? "#e5e7eb" : "#333333",
+    "--primary-fg": "#0f0f0f",
   };
 
 

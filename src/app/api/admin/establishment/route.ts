@@ -27,6 +27,7 @@ export async function PUT(req: NextRequest) {
     instagram: body.instagram || "",
     openTime: body.openTime,
     closeTime: body.closeTime,
+    openDays: body.openDays || "1,2,3,4,5,6",
     primaryColor: body.primaryColor || "#d4a017",
     bgColor: body.bgColor || "#0f0f0f",
     cardColor: body.cardColor || "#1a1a1a",

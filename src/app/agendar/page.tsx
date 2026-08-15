@@ -22,6 +22,7 @@ export default function AgendarPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [closedDay, setClosedDay] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/services")
@@ -47,9 +48,13 @@ export default function AgendarPage() {
     }
     setLoadingTimes(true);
     setTime("");
+    setClosedDay(false);
     fetch(`/api/available-times?date=${date}`)
       .then((r) => r.json())
-      .then((d) => setTimes(d.times || []))
+      .then((d) => {
+        setTimes(d.times || []);
+        setClosedDay(!!d.closed);
+      })
       .finally(() => setLoadingTimes(false));
   }, [date]);
 
@@ -135,7 +140,10 @@ export default function AgendarPage() {
               <Loader2 className="animate-spin text-[var(--primary)]" size={20} />
             ) : (
               <div className="flex flex-wrap gap-2">
-                {times.length === 0 && date && (
+                {closedDay && date && (
+                  <p className="text-sm text-amber-400">Fechado neste dia da semana. Escolha outro dia.</p>
+                )}
+                {!closedDay && times.length === 0 && date && (
                   <p className="text-sm text-neutral-500">Nenhum horário disponível neste dia.</p>
                 )}
                 {times.map((t) => (
