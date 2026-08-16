@@ -123,6 +123,16 @@ export default function AgendamentosPage() {
     return () => clearInterval(iv);
   }, [soundOn]);
 
+  // Lembrete sonoro enquanto houver pendentes (tipo notificação)
+  useEffect(() => {
+    if (!soundOn) return;
+    const iv = setInterval(() => {
+      const hasPending = items.some((i) => i.status === "pending");
+      if (hasPending) playAlertSound();
+    }, 20000);
+    return () => clearInterval(iv);
+  }, [soundOn, items]);
+
   async function setStatus(id: string, status: string) {
     await fetch(`/api/admin/appointments?id=${id}`, {
       method: "PATCH",
@@ -186,7 +196,7 @@ export default function AgendamentosPage() {
           className={`btn text-sm ${soundOn ? "btn-primary" : "btn-secondary"}`}
         >
           {soundOn ? <Bell size={16} /> : <BellOff size={16} />}
-          {soundOn ? "Alertas ON" : "Ativar alertas"}
+          {soundOn ? "Alertas ON — bipando" : "Ativar alertas sonoros"}
         </button>
       </div>
 
@@ -198,7 +208,7 @@ export default function AgendamentosPage() {
 
       <p className="text-sm text-[var(--muted-fg)] mb-4">
         Total: {items.length} · Pendentes: {pending} · Hoje: {todayCount}
-        {soundOn && " · Atualiza a cada 8s"}
+        {soundOn && " · Alertas ativos (deixe esta aba aberta)"}
       </p>
 
       <div className="flex flex-wrap gap-2 mb-6">

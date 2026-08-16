@@ -30,6 +30,7 @@ const defaults = {
   pixInstructions: "",
   pixChargeMode: "full",
   paymentPolicy: "both",
+  hoursByDay: "{}",
 };
 
 const PRESETS = [
@@ -129,6 +130,7 @@ export default function ConfigPage() {
             pixInstructions: d.pixInstructions || "",
             pixChargeMode: d.pixChargeMode || "full",
             paymentPolicy: d.paymentPolicy || "both",
+            hoursByDay: d.hoursByDay || "{}",
           });
         }
         setLoading(false);
@@ -250,7 +252,7 @@ export default function ConfigPage() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="label">Abre às</label>
+            <label className="label">Horário padrão — abre às</label>
             <input
               className="input"
               type="time"
@@ -260,7 +262,7 @@ export default function ConfigPage() {
             />
           </div>
           <div>
-            <label className="label">Fecha às</label>
+            <label className="label">Horário padrão — fecha às</label>
             <input
               className="input"
               type="time"
@@ -269,6 +271,62 @@ export default function ConfigPage() {
               required
             />
           </div>
+        </div>
+        <p className="text-xs text-neutral-500">
+          Horário especial por dia (opcional). Ex: sábado só de 08:00 às 12:00.
+          Deixe vazio para usar o horário padrão.
+        </p>
+        <div className="space-y-2">
+          {DAYS.filter((d) => openSet.has(d.value)).map((d) => {
+            let custom: { open?: string; close?: string } = {};
+            try {
+              custom = JSON.parse(form.hoursByDay || "{}")[d.value] || {};
+            } catch {}
+            return (
+              <div key={d.value} className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="w-20 text-[var(--muted-fg)]">{d.label}</span>
+                <input
+                  type="time"
+                  className="input w-auto py-1"
+                  value={custom.open || ""}
+                  onChange={(e) => {
+                    let map: Record<string, { open: string; close: string }> = {};
+                    try {
+                      map = JSON.parse(form.hoursByDay || "{}");
+                    } catch {}
+                    const open = e.target.value;
+                    const close = custom.close || form.closeTime;
+                    if (!open && !(custom.close || "")) {
+                      delete map[d.value];
+                    } else {
+                      map[d.value] = { open: open || form.openTime, close };
+                    }
+                    set("hoursByDay", JSON.stringify(map));
+                  }}
+                />
+                <span className="text-[var(--muted-fg)]">até</span>
+                <input
+                  type="time"
+                  className="input w-auto py-1"
+                  value={custom.close || ""}
+                  onChange={(e) => {
+                    let map: Record<string, { open: string; close: string }> = {};
+                    try {
+                      map = JSON.parse(form.hoursByDay || "{}");
+                    } catch {}
+                    const close = e.target.value;
+                    const open = custom.open || form.openTime;
+                    if (!close && !(custom.open || "")) {
+                      delete map[d.value];
+                    } else {
+                      map[d.value] = { open, close: close || form.closeTime };
+                    }
+                    set("hoursByDay", JSON.stringify(map));
+                  }}
+                />
+              </div>
+            );
+          })}
         </div>
 
         <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">

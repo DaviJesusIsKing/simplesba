@@ -36,6 +36,7 @@ export async function PUT(req: NextRequest) {
     pixInstructions: body.pixInstructions ?? "",
     pixChargeMode: body.pixChargeMode || "full",
     paymentPolicy: body.paymentPolicy || "both",
+    hoursByDay: body.hoursByDay || "{}",
   };
   const existing = await prisma.establishment.findFirst();
   if (!existing) {

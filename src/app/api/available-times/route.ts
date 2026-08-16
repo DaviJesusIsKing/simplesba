@@ -31,9 +31,30 @@ function buildSlots(open: string, close: string, step = 30): string[] {
   return slots;
 }
 
-/** Dois intervalos [aStart,aEnd) e [bStart,bEnd) se sobrepõem */
 function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {
   return aStart < bEnd && bStart < aEnd;
+}
+
+type DayHours = { open: string; close: string };
+
+function resolveHours(
+  est: { openTime: string; closeTime: string; hoursByDay?: string | null },
+  weekday: number
+): DayHours {
+  const fallback = {
+    open: est.openTime || "09:00",
+    close: est.closeTime || "19:00",
+  };
+  try {
+    const map = JSON.parse(est.hoursByDay || "{}") as Record<string, DayHours>;
+    const custom = map[String(weekday)];
+    if (custom?.open && custom?.close) {
+      return { open: custom.open, close: custom.close };
+    }
+  } catch {
+    // ignore
+  }
+  return fallback;
 }
 
 export async function GET(req: NextRequest) {
@@ -74,12 +95,10 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const openTime = est.openTime || "09:00";
-    const closeTime = est.closeTime || "19:00";
+    const { open: openTime, close: closeTime } = resolveHours(est, weekday);
     const closeMin = toMinutes(closeTime);
     const all = buildSlots(openTime, closeTime, 30);
 
-    // duração do serviço selecionado (padrão 30)
     let duration = 30;
     if (serviceId) {
       const svc = await prisma.service.findFirst({
@@ -88,7 +107,6 @@ export async function GET(req: NextRequest) {
       if (svc?.duration && svc.duration > 0) duration = svc.duration;
     }
 
-    // agendamentos do dia (com duração de cada serviço)
     let booked: { time: string; duration: number }[] = [];
     try {
       const rows = await prisma.appointment.findMany({
@@ -107,7 +125,6 @@ export async function GET(req: NextRequest) {
       console.error("appointment query:", err);
     }
 
-    // agora (servidor) — bloqueia horários já passados no dia de hoje
     const now = new Date();
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -115,11 +132,8 @@ export async function GET(req: NextRequest) {
     const times = all.filter((slot) => {
       const start = toMinutes(slot);
       const end = start + duration;
-      // não pode passar do horário de fechamento
       if (end > closeMin) return false;
-      // no dia de hoje, não oferece horário que já passou (margem 0 min)
       if (date === todayStr && start <= nowMin) return false;
-      // não pode cruzar com nenhum agendamento existente
       for (const b of booked) {
         const bStart = toMinutes(b.time);
         const bEnd = bStart + b.duration;

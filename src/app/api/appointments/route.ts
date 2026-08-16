@@ -58,8 +58,38 @@ export async function POST(req: NextRequest) {
     const duration = service.duration > 0 ? service.duration : 30;
     const start = toMinutes(timeStr);
     const end = start + duration;
-    const closeMin = toMinutes(est.closeTime || "19:00");
-    const openMin = toMinutes(est.openTime || "09:00");
+
+    const [y, mo, d] = dateStr.split("-").map(Number);
+    if (!y || !mo || !d) {
+      return NextResponse.json({ error: "Data inválida" }, { status: 400 });
+    }
+    const weekday = new Date(y, mo - 1, d).getDay();
+
+    let openStr = est.openTime || "09:00";
+    let closeStr = est.closeTime || "19:00";
+    try {
+      const map = JSON.parse(est.hoursByDay || "{}") as Record<
+        string,
+        { open: string; close: string }
+      >;
+      const custom = map[String(weekday)];
+      if (custom?.open && custom?.close) {
+        openStr = custom.open;
+        closeStr = custom.close;
+      }
+    } catch {
+      // ignore
+    }
+    const openMin = toMinutes(openStr);
+    const closeMin = toMinutes(closeStr);
+
+    const openDays = (est.openDays || "0,1,2,3,4,5,6")
+      .split(",")
+      .map((x) => x.trim())
+      .filter(Boolean);
+    if (openDays.length > 0 && !openDays.includes(String(weekday))) {
+      return NextResponse.json({ error: "Barbearia fechada neste dia" }, { status: 400 });
+    }
 
     if (start < openMin) {
       return NextResponse.json({ error: "Horário antes da abertura" }, { status: 400 });
@@ -69,19 +99,6 @@ export async function POST(req: NextRequest) {
         { error: "Esse serviço não cabe neste horário (passa do fechamento)" },
         { status: 400 }
       );
-    }
-
-    const [y, mo, d] = dateStr.split("-").map(Number);
-    if (!y || !mo || !d) {
-      return NextResponse.json({ error: "Data inválida" }, { status: 400 });
-    }
-    const weekday = new Date(y, mo - 1, d).getDay();
-    const openDays = (est.openDays || "0,1,2,3,4,5,6")
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
-    if (openDays.length > 0 && !openDays.includes(String(weekday))) {
-      return NextResponse.json({ error: "Barbearia fechada neste dia" }, { status: 400 });
     }
 
     const existing = await prisma.appointment.findMany({
@@ -112,8 +129,6 @@ export async function POST(req: NextRequest) {
     }
 
     const paymentStatus = method === "pix" ? "awaiting_receipt" : "unpaid";
-    // local: pending reservation still; can confirm without pay
-    // pix: stays pending until receipt approved
 
     const apt = await prisma.appointment.create({
       data: {
@@ -141,7 +156,7 @@ export async function POST(req: NextRequest) {
     }
     if (err?.message?.includes("does not exist") || err?.code === "P2021") {
       return NextResponse.json(
-        { error: "Tabela Appointment desatualizada. Rode: npx prisma db push" },
+        { error: "Banco desatualizado. Rode: npx prisma db push" },
         { status: 500 }
       );
     }

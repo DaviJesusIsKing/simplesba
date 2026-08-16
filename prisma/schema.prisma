@@ -40,6 +40,8 @@ model Establishment {
   pixChargeMode   String   @default("full")
   /// both = cliente escolhe | pix_only = só antecipado | local_only = só na hora
   paymentPolicy   String   @default("both")
+  /// JSON: {"1":{"open":"08:00","close":"12:00"}} por dia 0=Dom..6=Sáb
+  hoursByDay      String   @default("{}")
   updatedAt       DateTime @updatedAt
   services        Service[]
   products        Product[]
