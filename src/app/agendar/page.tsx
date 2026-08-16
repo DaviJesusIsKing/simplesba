@@ -51,7 +51,9 @@ export default function AgendarPage() {
     setTime("");
     setClosedDay(false);
     setTimesError("");
-    fetch(`/api/available-times?date=${date}`)
+    const q = new URLSearchParams({ date });
+    if (serviceId) q.set("serviceId", serviceId);
+    fetch(`/api/available-times?${q.toString()}`)
       .then(async (r) => {
         const d = await r.json();
         setTimes(d.times || []);
@@ -61,7 +63,7 @@ export default function AgendarPage() {
       })
       .catch(() => setTimesError("Erro ao carregar horários"))
       .finally(() => setLoadingTimes(false));
-  }, [date]);
+  }, [date, serviceId]);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();

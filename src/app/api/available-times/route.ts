@@ -8,44 +8,58 @@ function normTime(t: string): string {
   return `${h}:${m}`;
 }
 
+function toMinutes(t: string): number {
+  const [h, m] = normTime(t).split(":").map(Number);
+  return h * 60 + m;
+}
+
+function fromMinutes(m: number): string {
+  const hh = Math.floor(m / 60) % 24;
+  const mm = m % 60;
+  return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+}
+
 function buildSlots(open: string, close: string, step = 30): string[] {
-  const o = normTime(open);
-  const c = normTime(close);
-  const [oh, om] = o.split(":").map(Number);
-  const [ch, cm] = c.split(":").map(Number);
-  let start = oh * 60 + om;
-  let end = ch * 60 + cm;
-  if (end <= start) end = start + 8 * 60; // fallback 8h window
+  const start = toMinutes(open);
+  let end = toMinutes(close);
+  if (end <= start) end = start + 8 * 60;
   const slots: string[] = [];
   for (let m = start; m + step <= end; m += step) {
-    const hh = Math.floor(m / 60) % 24;
-    const mm = m % 60;
-    slots.push(`${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`);
+    slots.push(fromMinutes(m));
   }
   return slots;
+}
+
+/** Dois intervalos [aStart,aEnd) e [bStart,bEnd) se sobrepõem */
+function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {
+  return aStart < bEnd && bStart < aEnd;
 }
 
 export async function GET(req: NextRequest) {
   try {
     const date = req.nextUrl.searchParams.get("date");
+    const serviceId = req.nextUrl.searchParams.get("serviceId");
+
     if (!date || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
       return NextResponse.json({ error: "Data inválida", times: [] }, { status: 400 });
     }
 
     const est = await prisma.establishment.findFirst();
     if (!est) {
-      return NextResponse.json({ times: [], closed: true, message: "Estabelecimento não configurado" });
+      return NextResponse.json({
+        times: [],
+        closed: true,
+        message: "Estabelecimento não configurado",
+      });
     }
 
     const [y, mo, d] = date.split("-").map(Number);
-    const weekday = new Date(y, mo - 1, d).getDay(); // 0=Dom
+    const weekday = new Date(y, mo - 1, d).getDay();
 
     let openDays = (est.openDays || "0,1,2,3,4,5,6")
       .split(",")
       .map((x) => x.trim())
       .filter(Boolean);
-
-    // se vazio, libera todos os dias
     if (openDays.length === 0) {
       openDays = ["0", "1", "2", "3", "4", "5", "6"];
     }
@@ -60,29 +74,55 @@ export async function GET(req: NextRequest) {
 
     const openTime = est.openTime || "09:00";
     const closeTime = est.closeTime || "19:00";
+    const closeMin = toMinutes(closeTime);
     const all = buildSlots(openTime, closeTime, 30);
 
-    let taken: { time: string }[] = [];
+    // duração do serviço selecionado (padrão 30)
+    let duration = 30;
+    if (serviceId) {
+      const svc = await prisma.service.findFirst({
+        where: { id: serviceId, active: true },
+      });
+      if (svc?.duration && svc.duration > 0) duration = svc.duration;
+    }
+
+    // agendamentos do dia (com duração de cada serviço)
+    let booked: { time: string; duration: number }[] = [];
     try {
-      taken = await prisma.appointment.findMany({
+      const rows = await prisma.appointment.findMany({
         where: {
           establishmentId: est.id,
           date,
           NOT: { status: "cancelled" },
         },
-        select: { time: true },
+        include: { service: { select: { duration: true } } },
       });
+      booked = rows.map((r) => ({
+        time: normTime(r.time),
+        duration: r.service?.duration && r.service.duration > 0 ? r.service.duration : 30,
+      }));
     } catch (err) {
-      // tabela ainda não existe → ignora ocupados
       console.error("appointment query:", err);
     }
 
-    const takenSet = new Set(taken.map((t) => normTime(t.time)));
-    const times = all.filter((t) => !takenSet.has(t));
+    const times = all.filter((slot) => {
+      const start = toMinutes(slot);
+      const end = start + duration;
+      // não pode passar do horário de fechamento
+      if (end > closeMin) return false;
+      // não pode cruzar com nenhum agendamento existente
+      for (const b of booked) {
+        const bStart = toMinutes(b.time);
+        const bEnd = bStart + b.duration;
+        if (overlaps(start, end, bStart, bEnd)) return false;
+      }
+      return true;
+    });
 
     return NextResponse.json({
       times,
       closed: false,
+      duration,
       openTime: normTime(openTime),
       closeTime: normTime(closeTime),
       weekday,
