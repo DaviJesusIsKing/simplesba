@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { expireOldPendings } from "@/lib/appointments";
 
 function normTime(t: string): string {
   const parts = String(t).trim().split(":");
@@ -44,6 +45,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Data inválida", times: [] }, { status: 400 });
     }
 
+    await expireOldPendings();
     const est = await prisma.establishment.findFirst();
     if (!est) {
       return NextResponse.json({
@@ -93,7 +95,7 @@ export async function GET(req: NextRequest) {
         where: {
           establishmentId: est.id,
           date,
-          NOT: { status: "cancelled" },
+          status: { in: ["pending", "confirmed", "done"] },
         },
         include: { service: { select: { duration: true } } },
       });

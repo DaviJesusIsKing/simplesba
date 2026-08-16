@@ -31,6 +31,11 @@ export async function PUT(req: NextRequest) {
     primaryColor: body.primaryColor || "#d4a017",
     bgColor: body.bgColor || "#0f0f0f",
     cardColor: body.cardColor || "#1a1a1a",
+    pixKey: body.pixKey ?? "",
+    pixName: body.pixName ?? "",
+    pixInstructions: body.pixInstructions ?? "",
+    pixChargeMode: body.pixChargeMode || "full",
+    paymentPolicy: body.paymentPolicy || "both",
   };
   const existing = await prisma.establishment.findFirst();
   if (!existing) {

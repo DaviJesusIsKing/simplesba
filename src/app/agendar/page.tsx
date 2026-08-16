@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 
@@ -11,6 +12,7 @@ type Service = {
 };
 
 export default function AgendarPage() {
+  const router = useRouter();
   const [services, setServices] = useState<Service[]>([]);
   const [serviceId, setServiceId] = useState("");
   const [date, setDate] = useState("");
@@ -30,6 +32,9 @@ export default function AgendarPage() {
   } | null>(null);
   const [closedDay, setClosedDay] = useState(false);
   const [timesError, setTimesError] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"local" | "pix">("local");
+  const [policy, setPolicy] = useState("both");
+  const [hasPix, setHasPix] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/services")
@@ -38,11 +43,20 @@ export default function AgendarPage() {
   }, []);
 
   useEffect(() => {
-    // public services via prisma page - load from a simple public endpoint
     fetch("/api/services")
       .then((r) => (r.ok ? r.json() : []))
       .then((d) => {
         if (Array.isArray(d)) setServices(d);
+      })
+      .catch(() => {});
+    fetch("/api/public/establishment")
+      .then((r) => r.json())
+      .then((d) => {
+        const pol = d.paymentPolicy || "both";
+        setPolicy(pol);
+        setHasPix(!!(d.pixKey || "").trim());
+        if (pol === "pix_only") setPaymentMethod("pix");
+        if (pol === "local_only") setPaymentMethod("local");
       })
       .catch(() => {});
   }, []);
@@ -79,12 +93,17 @@ export default function AgendarPage() {
       const res = await fetch("/api/appointments", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceId, date, time, clientName, clientPhone }),
+        body: JSON.stringify({ serviceId, date, time, clientName, clientPhone, paymentMethod }),
       });
       const data = await res.json().catch(() => ({}));
       setSaving(false);
       if (!res.ok) {
         setError(data.error || data.message || `Erro ao agendar (${res.status})`);
+        return;
+      }
+      const id = data.appointment?.id || data.id;
+      if (id) {
+        router.push(`/agendamento/sucesso?id=${id}`);
         return;
       }
       const svc = services.find((s) => s.id === serviceId);
@@ -239,6 +258,48 @@ export default function AgendarPage() {
               required
             />
           </div>
+          {policy !== "local_only" && policy !== "pix_only" && (
+            <div>
+              <label className="label">Forma de pagamento</label>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPaymentMethod("local")}
+                  className={`rounded-lg border px-3 py-3 text-sm text-left ${
+                    paymentMethod === "local"
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                      : "border-[var(--border)]"
+                  }`}
+                >
+                  <strong>Pagar na hora</strong>
+                  <span className="block text-xs text-[var(--muted-fg)] mt-1">
+                    No salão, depois do serviço
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => hasPix && setPaymentMethod("pix")}
+                  disabled={!hasPix}
+                  className={`rounded-lg border px-3 py-3 text-sm text-left ${
+                    paymentMethod === "pix"
+                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                      : "border-[var(--border)]"
+                  } ${!hasPix ? "opacity-50" : ""}`}
+                >
+                  <strong>Pagar antes (PIX)</strong>
+                  <span className="block text-xs text-[var(--muted-fg)] mt-1">
+                    {hasPix ? "Enviar comprovante no site" : "PIX ainda não configurado"}
+                  </span>
+                </button>
+              </div>
+            </div>
+          )}
+          {policy === "pix_only" && (
+            <p className="text-sm text-amber-300">Este estabelecimento exige pagamento PIX antecipado.</p>
+          )}
+          {policy === "local_only" && (
+            <p className="text-sm text-[var(--muted-fg)]">Pagamento apenas no salão, na hora do atendimento.</p>
+          )}
           <button
             type="submit"
             className="btn btn-primary w-full"

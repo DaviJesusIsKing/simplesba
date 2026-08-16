@@ -17,23 +17,33 @@ model User {
 }
 
 model Establishment {
-  id           String        @id @default(cuid())
-  name         String
-  description  String
-  address      String
-  phone        String
-  whatsapp     String
-  instagram    String        @default("")
-  openDays     String        @default("1,2,3,4,5,6")
-  openTime     String        @default("09:00")
-  closeTime    String        @default("19:00")
-  primaryColor String        @default("#d4a017")
-  bgColor      String        @default("#0f0f0f")
-  cardColor    String        @default("#1a1a1a")
-  updatedAt    DateTime      @updatedAt
-  services     Service[]
-  products     Product[]
-  appointments Appointment[]
+  id              String   @id @default(cuid())
+  name            String
+  description     String
+  address         String
+  phone           String
+  whatsapp        String
+  instagram       String   @default("")
+  openDays        String   @default("1,2,3,4,5,6")
+  openTime        String   @default("09:00")
+  closeTime       String   @default("19:00")
+  primaryColor    String   @default("#d4a017")
+  bgColor         String   @default("#0f0f0f")
+  cardColor       String   @default("#1a1a1a")
+  /// Chave PIX (e-mail, telefone, CPF/CNPJ ou aleatória)
+  pixKey          String   @default("")
+  /// Nome que aparece no pagamento
+  pixName         String   @default("")
+  /// Texto livre: instruções pro cliente
+  pixInstructions String   @default("")
+  /// full = valor inteiro | half = 50% sinal | both = admin aceita os dois modos no valor
+  pixChargeMode   String   @default("full")
+  /// both = cliente escolhe | pix_only = só antecipado | local_only = só na hora
+  paymentPolicy   String   @default("both")
+  updatedAt       DateTime @updatedAt
+  services        Service[]
+  products        Product[]
+  appointments    Appointment[]
 }
 
 model Service {
@@ -60,17 +70,28 @@ model Product {
 }
 
 model Appointment {
-  id              String        @id @default(cuid())
+  id              String    @id @default(cuid())
   clientName      String
   clientPhone     String
   date            String
   time            String
-  status          String        @default("pending")
-  createdAt       DateTime      @default(now())
+  status          String    @default("pending")
+  /// local = paga no salão | pix = paga antes
+  paymentMethod   String    @default("local")
+  /// unpaid | awaiting_receipt | paid | rejected
+  paymentStatus   String    @default("unpaid")
+  amountDue       Float     @default(0)
+  receiptData     String?
+  receiptNote     String?
+  rejectReason    String?
+  expiresAt       DateTime?
+  createdAt       DateTime  @default(now())
   serviceId       String
-  service         Service       @relation(fields: [serviceId], references: [id])
+  service         Service   @relation(fields: [serviceId], references: [id])
   establishmentId String
   establishment   Establishment @relation(fields: [establishmentId], references: [id])
 
   @@index([establishmentId, date])
+  @@index([status, expiresAt])
+  @@index([clientPhone])
 }

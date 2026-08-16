@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { expireOldPendings, reservationDeadline } from "@/lib/appointments";
 
 function normTime(t: string): string {
   const parts = String(t).trim().split(":");
@@ -19,8 +20,9 @@ function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {
 
 export async function POST(req: NextRequest) {
   try {
+    await expireOldPendings();
     const body = await req.json();
-    const { serviceId, date, time, clientName, clientPhone } = body;
+    const { serviceId, date, time, clientName, clientPhone, paymentMethod } = body;
 
     if (!serviceId || !date || !time || !clientName || !clientPhone) {
       return NextResponse.json({ error: "Preencha todos os campos" }, { status: 400 });
@@ -29,6 +31,19 @@ export async function POST(req: NextRequest) {
     const est = await prisma.establishment.findFirst();
     if (!est) {
       return NextResponse.json({ error: "Estabelecimento não encontrado" }, { status: 400 });
+    }
+
+    const policy = est.paymentPolicy || "both";
+    let method = String(paymentMethod || "local");
+    if (policy === "pix_only") method = "pix";
+    if (policy === "local_only") method = "local";
+    if (method !== "pix" && method !== "local") method = "local";
+
+    if (method === "pix" && !(est.pixKey || "").trim()) {
+      return NextResponse.json(
+        { error: "PIX ainda não configurado pelo estabelecimento" },
+        { status: 400 }
+      );
     }
 
     const service = await prisma.service.findUnique({
@@ -73,15 +88,14 @@ export async function POST(req: NextRequest) {
       where: {
         establishmentId: est.id,
         date: dateStr,
-        status: { not: "cancelled" },
+        status: { in: ["pending", "confirmed", "done"] },
       },
       include: { service: { select: { duration: true } } },
     });
 
     for (const e of existing) {
       const bStart = toMinutes(e.time);
-      const bDur =
-        e.service && e.service.duration > 0 ? e.service.duration : 30;
+      const bDur = e.service && e.service.duration > 0 ? e.service.duration : 30;
       const bEnd = bStart + bDur;
       if (overlaps(start, end, bStart, bEnd)) {
         return NextResponse.json(
@@ -91,6 +105,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    const chargeMode = est.pixChargeMode || "full";
+    let amountDue = service.price;
+    if (method === "pix" && chargeMode === "half") {
+      amountDue = Math.round(service.price * 50) / 100;
+    }
+
+    const paymentStatus = method === "pix" ? "awaiting_receipt" : "unpaid";
+    // local: pending reservation still; can confirm without pay
+    // pix: stays pending until receipt approved
+
     const apt = await prisma.appointment.create({
       data: {
         clientName: String(clientName).trim().slice(0, 120),
@@ -98,6 +122,10 @@ export async function POST(req: NextRequest) {
         date: dateStr,
         time: timeStr,
         status: "pending",
+        paymentMethod: method,
+        paymentStatus,
+        amountDue,
+        expiresAt: reservationDeadline(),
         serviceId: service.id,
         establishmentId: est.id,
       },
@@ -107,34 +135,18 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ ok: true, appointment: apt });
   } catch (e: unknown) {
     console.error("appointment create error:", e);
-    const err = e as { code?: string; message?: string; meta?: unknown };
+    const err = e as { code?: string; message?: string };
     if (err?.code === "P2002") {
-      return NextResponse.json(
-        { error: "Horário já ocupado. Escolha outro." },
-        { status: 409 }
-      );
-    }
-    if (err?.code === "P2003") {
-      return NextResponse.json(
-        { error: "Serviço ou estabelecimento inválido (FK)" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Horário já ocupado. Escolha outro." }, { status: 409 });
     }
     if (err?.message?.includes("does not exist") || err?.code === "P2021") {
       return NextResponse.json(
-        {
-          error:
-            "Tabela Appointment não existe no Neon. No PC rode: npx prisma db push",
-        },
+        { error: "Tabela Appointment desatualizada. Rode: npx prisma db push" },
         { status: 500 }
       );
     }
     return NextResponse.json(
-      {
-        error: err?.message
-          ? `Erro: ${err.message}`
-          : "Erro ao agendar",
-      },
+      { error: err?.message ? `Erro: ${err.message}` : "Erro ao agendar" },
       { status: 500 }
     );
   }

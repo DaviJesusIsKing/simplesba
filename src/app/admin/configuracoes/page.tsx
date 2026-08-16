@@ -25,6 +25,11 @@ const defaults = {
   primaryColor: "#d4a017",
   bgColor: "#0f0f0f",
   cardColor: "#1a1a1a",
+  pixKey: "",
+  pixName: "",
+  pixInstructions: "",
+  pixChargeMode: "full",
+  paymentPolicy: "both",
 };
 
 const PRESETS = [
@@ -119,6 +124,11 @@ export default function ConfigPage() {
             primaryColor: d.primaryColor || "#d4a017",
             bgColor: d.bgColor || "#0f0f0f",
             cardColor: d.cardColor || "#1a1a1a",
+            pixKey: d.pixKey || "",
+            pixName: d.pixName || "",
+            pixInstructions: d.pixInstructions || "",
+            pixChargeMode: d.pixChargeMode || "full",
+            paymentPolicy: d.paymentPolicy || "both",
           });
         }
         setLoading(false);
@@ -259,6 +269,63 @@ export default function ConfigPage() {
               required
             />
           </div>
+        </div>
+
+        <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
+          PIX e pagamentos
+        </p>
+        <p className="text-xs text-neutral-500 -mt-2">
+          O cliente usa esta chave para pagar antes. Só PIX — sem cartão.
+        </p>
+        <div>
+          <label className="label">Chave PIX</label>
+          <input
+            className="input"
+            value={form.pixKey}
+            onChange={(e) => set("pixKey", e.target.value)}
+            placeholder="email, telefone, CPF/CNPJ ou chave aleatória"
+          />
+        </div>
+        <div>
+          <label className="label">Nome do recebedor (como no banco)</label>
+          <input
+            className="input"
+            value={form.pixName}
+            onChange={(e) => set("pixName", e.target.value)}
+            placeholder="Nome completo ou da empresa"
+          />
+        </div>
+        <div>
+          <label className="label">Instruções (opcional)</label>
+          <textarea
+            className="input min-h-[80px]"
+            value={form.pixInstructions}
+            onChange={(e) => set("pixInstructions", e.target.value)}
+            placeholder="Ex: Envie o comprovante em até 15 minutos com o nome completo."
+          />
+        </div>
+        <div>
+          <label className="label">Cobrança no PIX antecipado</label>
+          <select
+            className="input"
+            value={form.pixChargeMode}
+            onChange={(e) => set("pixChargeMode", e.target.value)}
+          >
+            <option value="full">Valor cheio do serviço</option>
+            <option value="half">Sinal de 50%</option>
+          </select>
+        </div>
+        <div>
+          <label className="label">O que o cliente pode escolher</label>
+          <select
+            className="input"
+            value={form.paymentPolicy}
+            onChange={(e) => set("paymentPolicy", e.target.value)}
+          >
+            <option value="both">Pagar antes (PIX) ou na hora</option>
+            <option value="pix_only">Somente pagar antes (PIX)</option>
+            <option value="local_only">Somente pagar na hora</option>
+          </select>
         </div>
 
         <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
