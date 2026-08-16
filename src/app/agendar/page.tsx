@@ -22,6 +22,12 @@ export default function AgendarPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [summary, setSummary] = useState<{
+    serviceName: string;
+    date: string;
+    time: string;
+    name: string;
+  } | null>(null);
   const [closedDay, setClosedDay] = useState(false);
   const [timesError, setTimesError] = useState("");
 
@@ -69,35 +75,79 @@ export default function AgendarPage() {
     e.preventDefault();
     setError("");
     setSaving(true);
-    const res = await fetch("/api/appointments", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ serviceId, date, time, clientName, clientPhone }),
-    });
-    const data = await res.json();
-    setSaving(false);
-    if (!res.ok) {
-      setError(data.error || "Erro ao agendar");
-      return;
+    try {
+      const res = await fetch("/api/appointments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId, date, time, clientName, clientPhone }),
+      });
+      const data = await res.json().catch(() => ({}));
+      setSaving(false);
+      if (!res.ok) {
+        setError(data.error || data.message || `Erro ao agendar (${res.status})`);
+        return;
+      }
+      const svc = services.find((s) => s.id === serviceId);
+      setSummary({
+        serviceName: svc?.name || "Serviço",
+        date,
+        time,
+        name: clientName,
+      });
+      setDone(true);
+    } catch {
+      setSaving(false);
+      setError("Falha de conexão ao agendar. Tente de novo.");
     }
-    setDone(true);
   }
 
   const minDate = new Date().toISOString().slice(0, 10);
 
   if (done) {
+    const d = summary?.date || date;
+    const tm = summary?.time || time;
+    const nm = summary?.name || clientName;
+    const sn = summary?.serviceName || "Serviço";
+    const [yy, mm, dd] = d.split("-");
+    const dateBr = yy && mm && dd ? `${dd}/${mm}/${yy}` : d;
+
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="card max-w-md w-full text-center space-y-4">
           <CheckCircle className="mx-auto text-green-400" size={48} />
-          <h1 className="text-xl font-bold">Agendamento enviado!</h1>
+          <h1 className="text-xl font-bold">Pedido recebido!</h1>
           <p className="text-[var(--muted-fg)] text-sm">
-            {clientName}, seu horário em {date} às {time} foi registrado.
-            Aguarde a confirmação da barbearia.
+            Obrigado, <strong className="text-[var(--fg)]">{nm}</strong>. Seu agendamento foi registrado e aguarda confirmação da barbearia.
           </p>
-          <Link href="/" className="btn btn-primary inline-flex">
-            Voltar ao início
-          </Link>
+          <div className="text-left rounded-lg border border-[var(--border)] bg-[var(--muted)] p-4 text-sm space-y-2">
+            <p><span className="text-[var(--muted-fg)]">Serviço:</span> {sn}</p>
+            <p><span className="text-[var(--muted-fg)]">Data:</span> {dateBr}</p>
+            <p><span className="text-[var(--muted-fg)]">Horário:</span> {tm}</p>
+            <p className="text-amber-300 text-xs pt-1">Status: aguardando confirmação</p>
+          </div>
+          <p className="text-xs text-[var(--muted-fg)]">
+            Você pode receber a confirmação pelo WhatsApp informado.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-2 justify-center">
+            <Link href="/" className="btn btn-primary">
+              Voltar ao início
+            </Link>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => {
+                setDone(false);
+                setSummary(null);
+                setServiceId("");
+                setDate("");
+                setTime("");
+                setClientName("");
+                setClientPhone("");
+              }}
+            >
+              Novo agendamento
+            </button>
+          </div>
         </div>
       </div>
     );

@@ -105,11 +105,18 @@ export async function GET(req: NextRequest) {
       console.error("appointment query:", err);
     }
 
+    // agora (servidor) — bloqueia horários já passados no dia de hoje
+    const now = new Date();
+    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+
     const times = all.filter((slot) => {
       const start = toMinutes(slot);
       const end = start + duration;
       // não pode passar do horário de fechamento
       if (end > closeMin) return false;
+      // no dia de hoje, não oferece horário que já passou (margem 0 min)
+      if (date === todayStr && start <= nowMin) return false;
       // não pode cruzar com nenhum agendamento existente
       for (const b of booked) {
         const bStart = toMinutes(b.time);

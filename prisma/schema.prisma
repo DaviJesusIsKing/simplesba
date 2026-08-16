@@ -72,5 +72,5 @@ model Appointment {
   establishmentId String
   establishment   Establishment @relation(fields: [establishmentId], references: [id])
 
-  @@unique([establishmentId, date, time])
+  @@index([establishmentId, date])
 }
