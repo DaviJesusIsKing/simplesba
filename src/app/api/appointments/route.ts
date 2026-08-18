@@ -101,6 +101,17 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (est.lunchEnabled) {
+      const ls = toMinutes(est.lunchStart || "12:00");
+      const le = toMinutes(est.lunchEnd || "13:00");
+      if (le > ls && overlaps(start, end, ls, le)) {
+        return NextResponse.json(
+          { error: "Horário de almoço. Escolha outro horário." },
+          { status: 400 }
+        );
+      }
+    }
+
     const existing = await prisma.appointment.findMany({
       where: {
         establishmentId: est.id,

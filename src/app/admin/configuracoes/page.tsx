@@ -21,6 +21,9 @@ const defaults = {
   instagram: "",
   openTime: "09:00",
   closeTime: "19:00",
+  lunchEnabled: false,
+  lunchStart: "12:00",
+  lunchEnd: "13:00",
   openDays: "1,2,3,4,5,6",
   primaryColor: "#d4a017",
   bgColor: "#0f0f0f",
@@ -123,6 +126,9 @@ export default function ConfigPage() {
             instagram: d.instagram || "",
             openTime: d.openTime || "09:00",
             closeTime: d.closeTime || "19:00",
+            lunchEnabled: !!d.lunchEnabled,
+            lunchStart: d.lunchStart || "12:00",
+            lunchEnd: d.lunchEnd || "13:00",
             openDays: d.openDays || "1,2,3,4,5,6",
             primaryColor: d.primaryColor || "#d4a017",
             bgColor: d.bgColor || "#0f0f0f",
@@ -331,6 +337,41 @@ export default function ConfigPage() {
               </div>
             );
           })}
+        </div>
+
+        <div className="rounded-lg border border-[var(--border)] p-3 space-y-3">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={!!form.lunchEnabled}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, lunchEnabled: e.target.checked }))
+              }
+            />
+            Ativar horário de almoço (não agenda nesse intervalo)
+          </label>
+          {form.lunchEnabled && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="label">Almoço começa</label>
+                <input
+                  type="time"
+                  className="input"
+                  value={form.lunchStart}
+                  onChange={(e) => set("lunchStart", e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="label">Almoço termina</label>
+                <input
+                  type="time"
+                  className="input"
+                  value={form.lunchEnd}
+                  onChange={(e) => set("lunchEnd", e.target.value)}
+                />
+              </div>
+            </div>
+          )}
         </div>
 
         <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">

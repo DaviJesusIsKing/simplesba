@@ -129,11 +129,19 @@ export async function GET(req: NextRequest) {
     const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     const nowMin = now.getHours() * 60 + now.getMinutes();
 
+    const lunchOn = !!(est as { lunchEnabled?: boolean }).lunchEnabled;
+    const lunchStartMin = toMinutes((est as { lunchStart?: string }).lunchStart || "12:00");
+    const lunchEndMin = toMinutes((est as { lunchEnd?: string }).lunchEnd || "13:00");
+
     const times = all.filter((slot) => {
       const start = toMinutes(slot);
       const end = start + duration;
       if (end > closeMin) return false;
       if (date === todayStr && start <= nowMin) return false;
+      // horário de almoço
+      if (lunchOn && lunchEndMin > lunchStartMin) {
+        if (overlaps(start, end, lunchStartMin, lunchEndMin)) return false;
+      }
       for (const b of booked) {
         const bStart = toMinutes(b.time);
         const bEnd = bStart + b.duration;
