@@ -9,6 +9,7 @@ import {
   Package,
   Settings,
   Calendar,
+  FileImage,
   LogOut,
   Loader2,
 } from "lucide-react";
@@ -16,6 +17,7 @@ import {
 const nav = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/agendamentos", label: "Agendamentos", icon: Calendar },
+  { href: "/admin/comprovantes", label: "Comprovantes", icon: FileImage },
   { href: "/admin/servicos", label: "Serviços", icon: Scissors },
   { href: "/admin/produtos", label: "Produtos", icon: Package },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },

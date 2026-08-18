@@ -8,20 +8,29 @@ export default async function AdminDashboard() {
   let products = 0;
   let appointments = 0;
   let pending = 0;
+  let receipts = 0;
   let estName = "—";
 
   try {
-    const [s, p, a, pend, est] = await Promise.all([
+    const [s, p, a, pend, rec, est] = await Promise.all([
       prisma.service.count(),
       prisma.product.count(),
       prisma.appointment.count(),
       prisma.appointment.count({ where: { status: "pending" } }),
+      prisma.appointment.count({
+        where: {
+          paymentMethod: "pix",
+          paymentStatus: "awaiting_receipt",
+          receiptData: { not: null },
+        },
+      }),
       prisma.establishment.findFirst(),
     ]);
     services = s;
     products = p;
     appointments = a;
     pending = pend;
+    receipts = rec;
     estName = est?.name || "—";
   } catch (e) {
     console.error(e);
@@ -45,13 +54,21 @@ export default async function AdminDashboard() {
           <p className="text-3xl font-bold text-[#d4a017]">{products}</p>
         </div>
         <div className="card">
-          <p className="text-sm text-neutral-400">Estabelecimento</p>
+          <p className="text-sm text-[var(--muted-fg)]">Comprovantes</p>
+          <p className="text-3xl font-bold text-[#d4a017]">{receipts}</p>
+          <p className="text-xs text-[var(--muted-fg)] mt-1">para revisar</p>
+        </div>
+        <div className="card">
+          <p className="text-sm text-[var(--muted-fg)]">Estabelecimento</p>
           <p className="text-lg font-semibold">{estName}</p>
         </div>
       </div>
       <div className="flex flex-wrap gap-3">
-        <Link href="/admin/agendamentos" className="btn btn-primary">
-          Ver agendamentos
+        <Link href="/admin/comprovantes" className="btn btn-primary">
+          Ver comprovantes
+        </Link>
+        <Link href="/admin/agendamentos" className="btn btn-secondary">
+          Agendamentos
         </Link>
         <Link href="/admin/servicos" className="btn btn-secondary">
           Serviços
