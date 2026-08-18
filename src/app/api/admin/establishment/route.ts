@@ -37,6 +37,8 @@ export async function PUT(req: NextRequest) {
     pixChargeMode: body.pixChargeMode || "full",
     paymentPolicy: body.paymentPolicy || "both",
     hoursByDay: body.hoursByDay || "{}",
+    pixQrData: body.pixQrData ?? "",
+    showProducts: body.showProducts !== false,
   };
   const existing = await prisma.establishment.findFirst();
   if (!existing) {

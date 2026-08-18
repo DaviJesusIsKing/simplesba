@@ -42,6 +42,10 @@ model Establishment {
   paymentPolicy   String   @default("both")
   /// JSON: {"1":{"open":"08:00","close":"12:00"}} por dia 0=Dom..6=Sáb
   hoursByDay      String   @default("{}")
+  /// QR Code PIX (data URL da imagem)
+  pixQrData       String   @default("")
+  /// Exibir seção de produtos no site
+  showProducts    Boolean  @default(true)
   updatedAt       DateTime @updatedAt
   services        Service[]
   products        Product[]

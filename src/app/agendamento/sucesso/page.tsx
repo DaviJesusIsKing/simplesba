@@ -39,6 +39,7 @@ function Content() {
     pixKey: "",
     pixName: "",
     pixInstructions: "",
+    pixQrData: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(!!id);
@@ -70,6 +71,7 @@ function Content() {
           pixKey: d.pixKey || "",
           pixName: d.pixName || "",
           pixInstructions: d.pixInstructions || "",
+          pixQrData: d.pixQrData || "",
         })
       )
       .catch(() => {});
@@ -229,6 +231,15 @@ function Content() {
                 <p className="text-sm font-semibold">Pagamento PIX</p>
                 {pix.pixName && (
                   <p className="text-xs text-[var(--muted-fg)]">Recebedor: {pix.pixName}</p>
+                )}
+                {pix.pixQrData && (
+                  <div className="flex justify-center">
+                    <img
+                      src={pix.pixQrData}
+                      alt="QR Code PIX"
+                      className="h-40 w-40 rounded-lg border border-[var(--border)] object-contain bg-white p-2"
+                    />
+                  </div>
                 )}
                 <div className="flex gap-2">
                   <input className="input text-sm" readOnly value={pix.pixKey} />

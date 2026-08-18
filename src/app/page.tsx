@@ -33,6 +33,7 @@ type Est = {
   primaryColor?: string;
   bgColor?: string;
   cardColor?: string;
+  showProducts?: boolean;
 } | null;
 
 async function loadData(): Promise<{
@@ -77,7 +78,7 @@ export default async function HomePage() {
 
   return (
     <div>
-      <Header name={name} />
+      <Header name={name} showProducts={est?.showProducts !== false} />
 
       {error && (
         <div className="mx-auto max-w-6xl px-4 pt-6">
@@ -148,6 +149,7 @@ export default async function HomePage() {
         </div>
       </section>
 
+      {est?.showProducts !== false && (
       <section id="produtos" className="mx-auto max-w-6xl px-4 py-12">
         <h2 className="mb-6 text-2xl font-bold">Produtos</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -180,6 +182,7 @@ export default async function HomePage() {
           )}
         </div>
       </section>
+      )}
 
       <section id="contato" className="mx-auto max-w-6xl px-4 py-12">
         <h2 className="mb-6 text-2xl font-bold">Informações</h2>

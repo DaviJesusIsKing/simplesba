@@ -31,6 +31,8 @@ const defaults = {
   pixChargeMode: "full",
   paymentPolicy: "both",
   hoursByDay: "{}",
+  pixQrData: "",
+  showProducts: true,
 };
 
 const PRESETS = [
@@ -131,6 +133,8 @@ export default function ConfigPage() {
             pixChargeMode: d.pixChargeMode || "full",
             paymentPolicy: d.paymentPolicy || "both",
             hoursByDay: d.hoursByDay || "{}",
+            pixQrData: d.pixQrData || "",
+            showProducts: d.showProducts !== false,
           });
         }
         setLoading(false);
@@ -343,6 +347,56 @@ export default function ConfigPage() {
             onChange={(e) => set("pixKey", e.target.value)}
             placeholder="email, telefone, CPF/CNPJ ou chave aleatória"
           />
+        </div>
+        <div>
+          <label className="label">QR Code PIX (imagem do app do banco)</label>
+          <input
+            type="file"
+            accept="image/*"
+            className="block w-full text-sm text-[var(--muted-fg)] mb-2"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              if (file.size > 900_000) {
+                setMsg("QR Code muito grande (máx ~900KB)");
+                return;
+              }
+              const reader = new FileReader();
+              reader.onload = () => {
+                setForm((f) => ({ ...f, pixQrData: String(reader.result || "") }));
+              };
+              reader.readAsDataURL(file);
+            }}
+          />
+          {form.pixQrData && (
+            <div className="flex items-start gap-3">
+              <img
+                src={form.pixQrData}
+                alt="QR PIX"
+                className="h-28 w-28 rounded-lg border border-[var(--border)] object-contain bg-white p-1"
+              />
+              <button
+                type="button"
+                className="btn btn-secondary text-sm"
+                onClick={() => set("pixQrData", "")}
+              >
+                Remover QR
+              </button>
+            </div>
+          )}
+        </div>
+        <div>
+          <label className="label">Mostrar produtos no site</label>
+          <select
+            className="input"
+            value={form.showProducts ? "yes" : "no"}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, showProducts: e.target.value === "yes" }))
+            }
+          >
+            <option value="yes">Sim — exibir seção Produtos</option>
+            <option value="no">Não — ocultar produtos</option>
+          </select>
         </div>
         <div>
           <label className="label">Nome do recebedor (como no banco)</label>

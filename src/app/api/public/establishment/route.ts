@@ -13,6 +13,8 @@ export async function GET() {
       pixInstructions: est.pixInstructions || "",
       pixChargeMode: est.pixChargeMode || "full",
       paymentPolicy: est.paymentPolicy || "both",
+      pixQrData: est.pixQrData || "",
+      showProducts: est.showProducts !== false,
       openTime: est.openTime,
       closeTime: est.closeTime,
     });
