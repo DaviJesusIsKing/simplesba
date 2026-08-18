@@ -28,9 +28,6 @@ export function Header({
           <a href="#servicos">Serviços</a>
           {showProducts && <a href="#produtos">Produtos</a>}
           <a href="#contato">Contato</a>
-          <Link href="/admin" className="opacity-70 hover:opacity-100">
-            Admin
-          </Link>
         </nav>
         <button
           className="md:hidden"
@@ -60,9 +57,6 @@ export function Header({
           <a href="#contato" onClick={() => setOpen(false)}>
             Contato
           </a>
-          <Link href="/admin" onClick={() => setOpen(false)}>
-            Admin
-          </Link>
         </nav>
       )}
     </header>
