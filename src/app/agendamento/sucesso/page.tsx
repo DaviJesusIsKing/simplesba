@@ -210,12 +210,32 @@ function Content() {
                 <span className="text-[var(--muted-fg)]">Pagamento:</span>{" "}
                 {isPix ? "PIX antecipado" : "Na hora, no salão"}
               </p>
-              {isPix && (
-                <p>
-                  <span className="text-[var(--muted-fg)]">Valor PIX:</span> R${" "}
-                  {(data.amountDue ?? data.service.price).toFixed(2)}
-                </p>
-              )}
+              {isPix && (() => {
+                const total = data.service.price;
+                const pix = data.amountDue ?? total;
+                const resto = Math.round((total - pix) * 100) / 100;
+                const isSinal = pix < total - 0.001;
+                return (
+                  <>
+                    <p>
+                      <span className="text-[var(--muted-fg)]">Valor do serviço:</span> R${" "}
+                      {total.toFixed(2)}
+                    </p>
+                    <p>
+                      <span className="text-[var(--muted-fg)]">
+                        {isSinal ? "Sinal (PIX agora):" : "PIX (valor total):"}
+                      </span>{" "}
+                      <strong className="text-[var(--primary)]">R$ {pix.toFixed(2)}</strong>
+                    </p>
+                    {isSinal && (
+                      <p>
+                        <span className="text-[var(--muted-fg)]">Restante no salão:</span> R${" "}
+                        {resto.toFixed(2)}
+                      </p>
+                    )}
+                  </>
+                );
+              })()}
               <p className="text-xs pt-1 text-amber-300">
                 Status: {statusLabel[data.status] || data.status}
                 {data.paymentStatus === "paid" && " · Pago"}
@@ -251,18 +271,27 @@ function Content() {
                 {pix.pixInstructions && (
                   <p className="text-xs text-[var(--muted-fg)]">{pix.pixInstructions}</p>
                 )}
-                <div>
-                  <label className="label">Enviar comprovante (imagem)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="block w-full text-sm text-[var(--muted-fg)]"
-                    disabled={uploading}
-                    onChange={(e) => onFile(e.target.files?.[0] || null)}
-                  />
+                <div className="rounded-xl border-2 border-dashed border-[var(--primary)] bg-[var(--primary)]/10 p-4 text-center space-y-3">
+                  <p className="font-semibold text-[var(--primary)]">
+                    Enviar foto do comprovante
+                  </p>
+                  <p className="text-xs text-[var(--muted-fg)]">
+                    Tire um print do PIX pago e envie aqui (JPG ou PNG)
+                  </p>
+                  <label className="btn btn-primary w-full cursor-pointer">
+                    {uploading ? "Enviando…" : "Escolher imagem do comprovante"}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => onFile(e.target.files?.[0] || null)}
+                    />
+                  </label>
+                  {uploadMsg && (
+                    <p className="text-sm text-[var(--primary)]">{uploadMsg}</p>
+                  )}
                 </div>
-                {uploading && <p className="text-xs text-amber-300">Enviando…</p>}
-                {uploadMsg && <p className="text-xs text-[var(--primary)]">{uploadMsg}</p>}
               </div>
             )}
 

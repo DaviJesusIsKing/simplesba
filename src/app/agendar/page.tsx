@@ -35,6 +35,8 @@ export default function AgendarPage() {
   const [paymentMethod, setPaymentMethod] = useState<"local" | "pix">("local");
   const [policy, setPolicy] = useState("both");
   const [hasPix, setHasPix] = useState(false);
+  const [chargeMode, setChargeMode] = useState("full");
+  const [chargePercent, setChargePercent] = useState(50);
 
   useEffect(() => {
     fetch("/api/admin/services")
@@ -55,6 +57,8 @@ export default function AgendarPage() {
         const pol = d.paymentPolicy || "both";
         setPolicy(pol);
         setHasPix(!!(d.pixKey || "").trim());
+        setChargeMode(d.pixChargeMode || "full");
+        setChargePercent(Number(d.pixChargePercent) || 50);
         if (pol === "pix_only") setPaymentMethod("pix");
         if (pol === "local_only") setPaymentMethod("local");
       })
@@ -258,24 +262,28 @@ export default function AgendarPage() {
               required
             />
           </div>
-          {policy !== "local_only" && policy !== "pix_only" && (
+          {policy !== "local_only" && (
             <div>
-              <label className="label">Forma de pagamento</label>
+              <label className="label">Como deseja pagar?</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setPaymentMethod("local")}
-                  className={`rounded-lg border px-3 py-3 text-sm text-left ${
-                    paymentMethod === "local"
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                      : "border-[var(--border)]"
-                  }`}
-                >
-                  <strong>Pagar na hora</strong>
-                  <span className="block text-xs text-[var(--muted-fg)] mt-1">
-                    No salão, depois do serviço
-                  </span>
-                </button>
+                {policy !== "pix_only" && (
+                  <button
+                    type="button"
+                    onClick={() => setPaymentMethod("local")}
+                    className={`rounded-lg border px-3 py-3 text-sm text-left ${
+                      paymentMethod === "local"
+                        ? "border-[var(--primary)] bg-[var(--primary)]/10"
+                        : "border-[var(--border)]"
+                    }`}
+                  >
+                    <strong>Pagar na hora</strong>
+                    <span className="block text-xs text-[var(--muted-fg)] mt-1">
+                      {serviceId
+                        ? `Total no salão: R$ ${(services.find((s) => s.id === serviceId)?.price ?? 0).toFixed(2)}`
+                        : "Paga tudo no salão no dia do corte"}
+                    </span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => hasPix && setPaymentMethod("pix")}
@@ -286,20 +294,73 @@ export default function AgendarPage() {
                       : "border-[var(--border)]"
                   } ${!hasPix ? "opacity-50" : ""}`}
                 >
-                  <strong>Pagar antes (PIX)</strong>
+                  <strong>
+                    {chargeMode === "half"
+                      ? `Sinal de ${chargePercent}% no PIX`
+                      : "Pagar no PIX agora"}
+                  </strong>
                   <span className="block text-xs text-[var(--muted-fg)] mt-1">
-                    {hasPix ? "Enviar comprovante no site" : "PIX ainda não configurado"}
+                    {!hasPix
+                      ? "PIX ainda não configurado"
+                      : serviceId
+                        ? (() => {
+                            const total =
+                              services.find((s) => s.id === serviceId)?.price ?? 0;
+                            const sinal =
+                              chargeMode === "half"
+                                ? Math.round(total * chargePercent) / 100
+                                : total;
+                            return `Pagar agora: R$ ${sinal.toFixed(2)}`;
+                          })()
+                        : "Escolha o serviço para ver o valor"}
                   </span>
                 </button>
               </div>
             </div>
           )}
-          {policy === "pix_only" && (
-            <p className="text-sm text-amber-300">Este estabelecimento exige pagamento PIX antecipado.</p>
-          )}
           {policy === "local_only" && (
-            <p className="text-sm text-[var(--muted-fg)]">Pagamento apenas no salão, na hora do atendimento.</p>
+            <p className="text-sm text-[var(--muted-fg)]">
+              Pagamento apenas no salão, na hora do atendimento.
+            </p>
           )}
+
+          {paymentMethod === "pix" && serviceId && (() => {
+            const svc = services.find((s) => s.id === serviceId);
+            if (!svc) return null;
+            const total = svc.price;
+            const sinal =
+              chargeMode === "half"
+                ? Math.round(total * chargePercent) / 100
+                : total;
+            const resto = Math.round((total - sinal) * 100) / 100;
+            return (
+              <div className="rounded-lg border-2 border-[var(--primary)]/60 bg-[var(--primary)]/10 p-4 text-sm space-y-2">
+                <p className="font-semibold text-[var(--primary)]">Você vai pagar agora no PIX</p>
+                <p className="text-2xl font-bold">R$ {sinal.toFixed(2)}</p>
+                <p className="text-[var(--muted-fg)]">
+                  {svc.name} — total do serviço R$ {total.toFixed(2)}
+                </p>
+                {chargeMode === "half" && resto > 0 && (
+                  <p className="text-[var(--muted-fg)]">
+                    Restante no salão no dia: <strong>R$ {resto.toFixed(2)}</strong>
+                  </p>
+                )}
+                <p className="text-xs text-amber-300">
+                  Depois de confirmar, envie a foto do comprovante na próxima tela.
+                </p>
+              </div>
+            );
+          })()}
+
+          {paymentMethod === "local" && serviceId && policy !== "pix_only" && (
+            <div className="rounded-lg border border-[var(--border)] bg-[var(--muted)] p-3 text-sm">
+              No salão você paga o total:{" "}
+              <strong className="text-[var(--primary)]">
+                R$ {(services.find((s) => s.id === serviceId)?.price ?? 0).toFixed(2)}
+              </strong>
+            </div>
+          )}
+
           <button
             type="submit"
             className="btn btn-primary w-full"

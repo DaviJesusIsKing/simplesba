@@ -38,6 +38,7 @@ export async function PUT(req: NextRequest) {
     pixName: body.pixName ?? "",
     pixInstructions: body.pixInstructions ?? "",
     pixChargeMode: body.pixChargeMode || "full",
+    pixChargePercent: Math.min(100, Math.max(1, Number(body.pixChargePercent) || 50)),
     paymentPolicy: body.paymentPolicy || "both",
     hoursByDay: body.hoursByDay || "{}",
     pixQrData: body.pixQrData ?? "",

@@ -134,10 +134,13 @@ export async function POST(req: NextRequest) {
     }
 
     const chargeMode = est.pixChargeMode || "full";
+    const pct = Math.min(100, Math.max(1, (est as { pixChargePercent?: number }).pixChargePercent ?? 50));
     let amountDue = service.price;
     if (method === "pix" && chargeMode === "half") {
-      amountDue = Math.round(service.price * 50) / 100;
+      amountDue = Math.round(service.price * pct) / 100;
     }
+    // arredonda em centavos
+    amountDue = Math.round(amountDue * 100) / 100;
 
     const paymentStatus = method === "pix" ? "awaiting_receipt" : "unpaid";
 

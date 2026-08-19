@@ -169,10 +169,15 @@ export default function MeusAgendamentosPage() {
                 {formatDateBR(a.date)} às {a.time} · {a.service.duration} min
               </p>
               <p className="text-sm text-[var(--primary)]">
-                R$ {a.service.price.toFixed(2)}
-                {a.paymentMethod === "pix" && typeof a.amountDue === "number"
-                  ? ` · PIX R$ ${a.amountDue.toFixed(2)}`
-                  : ""}
+                Serviço R$ {a.service.price.toFixed(2)}
+                {a.paymentMethod === "pix" && typeof a.amountDue === "number" && (
+                  <>
+                    {" · "}
+                    {a.amountDue < a.service.price - 0.001
+                      ? `Sinal PIX R$ ${a.amountDue.toFixed(2)} (resta R$ ${(a.service.price - a.amountDue).toFixed(2)} no salão)`
+                      : `PIX total R$ ${a.amountDue.toFixed(2)}`}
+                  </>
+                )}
               </p>
               <p className={`text-sm ${statusColor[a.status] || ""}`}>
                 {statusLabel[a.status] || a.status}
@@ -193,18 +198,29 @@ export default function MeusAgendamentosPage() {
               )}
 
               {canUpload(a) && (
-                <div className="pt-2 border-t border-[var(--border)]">
-                  <label className="label">Enviar comprovante (imagem)</label>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    disabled={uploadingId === a.id}
-                    className="block w-full text-sm text-[var(--muted-fg)]"
-                    onChange={(e) => onFile(a.id, e.target.files?.[0] || null)}
-                  />
-                  {uploadingId === a.id && (
-                    <p className="text-xs text-amber-300 mt-1">Enviando…</p>
-                  )}
+                <div className="pt-3 border-t border-[var(--border)]">
+                  <div className="rounded-xl border-2 border-dashed border-[var(--primary)] bg-[var(--primary)]/10 p-3 text-center space-y-2">
+                    <p className="text-sm font-semibold text-[var(--primary)]">
+                      Enviar comprovante PIX
+                    </p>
+                    {typeof a.amountDue === "number" && (
+                      <p className="text-xs text-[var(--muted-fg)]">
+                        Valor do PIX: R$ {a.amountDue.toFixed(2)}
+                      </p>
+                    )}
+                    <label className="btn btn-primary w-full cursor-pointer text-sm">
+                      {uploadingId === a.id
+                        ? "Enviando…"
+                        : "Escolher imagem do comprovante"}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        disabled={uploadingId === a.id}
+                        onChange={(e) => onFile(a.id, e.target.files?.[0] || null)}
+                      />
+                    </label>
+                  </div>
                 </div>
               )}
 

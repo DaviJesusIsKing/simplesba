@@ -166,7 +166,14 @@ export default function ComprovantesPage() {
                     {a.service.name} · {formatDateBR(a.date)} às {a.time}
                   </p>
                   <p className="text-sm text-[var(--primary)]">
-                    PIX R$ {(a.amountDue ?? a.service.price).toFixed(2)}
+                    {(() => {
+                      const total = a.service.price;
+                      const pix = a.amountDue ?? total;
+                      if (pix < total - 0.001) {
+                        return `Sinal PIX R$ ${pix.toFixed(2)} · total R$ ${total.toFixed(2)}`;
+                      }
+                      return `PIX total R$ ${pix.toFixed(2)}`;
+                    })()}
                   </p>
                   <p className="text-xs text-[var(--muted-fg)] mt-1">
                     {a.paymentStatus === "paid" && "Pago / aprovado"}

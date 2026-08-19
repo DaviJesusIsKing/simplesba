@@ -32,6 +32,7 @@ const defaults = {
   pixName: "",
   pixInstructions: "",
   pixChargeMode: "full",
+  pixChargePercent: "50",
   paymentPolicy: "both",
   hoursByDay: "{}",
   pixQrData: "",
@@ -137,6 +138,7 @@ export default function ConfigPage() {
             pixName: d.pixName || "",
             pixInstructions: d.pixInstructions || "",
             pixChargeMode: d.pixChargeMode || "full",
+            pixChargePercent: String(d.pixChargePercent ?? 50),
             paymentPolicy: d.paymentPolicy || "both",
             hoursByDay: d.hoursByDay || "{}",
             pixQrData: d.pixQrData || "",
@@ -458,16 +460,35 @@ export default function ConfigPage() {
           />
         </div>
         <div>
-          <label className="label">Cobrança no PIX antecipado</label>
+          <label className="label">O que cobrar no PIX antecipado</label>
           <select
             className="input"
             value={form.pixChargeMode}
             onChange={(e) => set("pixChargeMode", e.target.value)}
           >
-            <option value="full">Valor cheio do serviço</option>
-            <option value="half">Sinal de 50%</option>
+            <option value="full">Valor total do serviço</option>
+            <option value="half">Só um sinal (entrada)</option>
           </select>
+          <p className="text-xs text-[var(--muted-fg)] mt-1">
+            Se for sinal, o restante o cliente paga no salão no dia do atendimento.
+          </p>
         </div>
+        {form.pixChargeMode === "half" && (
+          <div>
+            <label className="label">Percentual do sinal (%)</label>
+            <input
+              className="input"
+              type="number"
+              min={1}
+              max={100}
+              value={form.pixChargePercent}
+              onChange={(e) => set("pixChargePercent", e.target.value)}
+            />
+            <p className="text-xs text-[var(--muted-fg)] mt-1">
+              Ex.: 50 = metade. Serviço de R$ 80 → PIX de R$ 40 agora + R$ 40 no salão.
+            </p>
+          </div>
+        )}
         <div>
           <label className="label">O que o cliente pode escolher</label>
           <select

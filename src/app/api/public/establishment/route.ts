@@ -12,6 +12,7 @@ export async function GET() {
       pixName: est.pixName || "",
       pixInstructions: est.pixInstructions || "",
       pixChargeMode: est.pixChargeMode || "full",
+      pixChargePercent: est.pixChargePercent ?? 50,
       paymentPolicy: est.paymentPolicy || "both",
       pixQrData: est.pixQrData || "",
       showProducts: est.showProducts !== false,
