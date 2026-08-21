@@ -44,8 +44,8 @@ export async function PUT(req: NextRequest) {
     pixQrData: body.pixQrData ?? "",
     showProducts: body.showProducts !== false,
     telegramEnabled: !!body.telegramEnabled,
-    telegramBotToken: body.telegramBotToken ?? "",
-    telegramChatId: body.telegramChatId ?? "",
+    telegramBotToken: String(body.telegramBotToken ?? "").replace(/\s+/g, ""),
+    telegramChatId: String(body.telegramChatId ?? "").trim(),
   };
   const existing = await prisma.establishment.findFirst();
   if (!existing) {

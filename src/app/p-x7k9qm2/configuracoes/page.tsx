@@ -549,7 +549,14 @@ export default function ConfigPage() {
           className="btn btn-secondary text-sm"
           onClick={async () => {
             setMsg("");
-            const res = await fetch("/api/admin/telegram-test", { method: "POST" });
+            const res = await fetch("/api/admin/telegram-test", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                telegramBotToken: String(form.telegramBotToken || "").replace(/\s+/g, ""),
+                telegramChatId: String(form.telegramChatId || "").trim(),
+              }),
+            });
             const j = await res.json().catch(() => ({}));
             if (!res.ok) setMsg(j.error || "Falha no teste do Telegram");
             else setMsg("Mensagem de teste enviada! Confira o Telegram.");

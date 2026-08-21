@@ -5,7 +5,9 @@ export async function sendTelegramAlert(text: string) {
     const est = await prisma.establishment.findFirst();
     if (!est) return { ok: false, reason: "no_est" };
     const enabled = (est as { telegramEnabled?: boolean }).telegramEnabled;
-    const token = ((est as { telegramBotToken?: string }).telegramBotToken || "").trim();
+    const token = ((est as { telegramBotToken?: string }).telegramBotToken || "")
+      .trim()
+      .replace(/\s+/g, "");
     const chatId = ((est as { telegramChatId?: string }).telegramChatId || "").trim();
     if (!enabled || !token || !chatId) {
       return { ok: false, reason: "disabled" };
