@@ -12,7 +12,7 @@ export function isLightColor(hex: string): boolean {
   const g = parseInt(full.slice(2, 4), 16);
   const b = parseInt(full.slice(4, 6), 16);
   const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-  return lum > 0.62;
+  return lum > 0.55;
 }
 
 export function themeFromEst(est?: {
@@ -20,18 +20,20 @@ export function themeFromEst(est?: {
   bgColor?: string | null;
   cardColor?: string | null;
 } | null) {
-  const primary = est?.primaryColor || "#d4a017";
-  const bg = est?.bgColor || "#0f0f0f";
-  const card = est?.cardColor || "#1a1a1a";
+  const primary = normalizeHex(est?.primaryColor) || "#d4a017";
+  const bg = normalizeHex(est?.bgColor) || "#0f0f0f";
+  const card = normalizeHex(est?.cardColor) || "#1a1a1a";
   const lightBg = isLightColor(bg);
   const lightCard = isLightColor(card);
   const lightPrimary = isLightColor(primary);
 
-  // header/nav um pouco diferente do fundo para separar
   const header = lightBg
-    ? mixToward(bg, "#ffffff", 0.4)
-    : mixToward(bg, "#000000", 0.35);
+    ? mixToward(bg, "#ffffff", 0.5)
+    : mixToward(bg, "#000000", 0.4);
   const headerFg = isLightColor(header) ? "#111111" : "#f5f5f5";
+  const sidebar = lightBg
+    ? mixToward(card, "#ffffff", 0.15)
+    : mixToward(card, "#000000", 0.2);
 
   return {
     "--primary": primary,
@@ -40,13 +42,50 @@ export function themeFromEst(est?: {
     "--fg": lightBg ? "#111111" : "#f5f5f5",
     "--muted": lightBg ? "#e8eaed" : "#262626",
     "--border": lightBg ? "#d1d5db" : "#333333",
-    "--primary-fg": lightPrimary ? "#111111" : "#0f0f0f",
+    "--primary-fg": lightPrimary ? "#111111" : "#ffffff",
     "--card-fg": lightCard ? "#111111" : "#f5f5f5",
     "--muted-fg": lightBg || lightCard ? "#525252" : "#a3a3a3",
     "--header": header,
     "--header-fg": headerFg,
     "--footer": header,
+    "--sidebar": sidebar,
+    "--ring": primary,
   } as Record<string, string>;
+}
+
+/** Tema do painel: fundo escuro legível + cor principal do estabelecimento */
+export function adminThemeFromEst(est?: {
+  primaryColor?: string | null;
+} | null) {
+  const primary = normalizeHex(est?.primaryColor) || "#d4a017";
+  const lightPrimary = isLightColor(primary);
+  return {
+    "--primary": primary,
+    "--primary-fg": lightPrimary ? "#111111" : "#0f0f0f",
+    "--bg": "#0c0c0c",
+    "--fg": "#f5f5f5",
+    "--card": "#161616",
+    "--card-fg": "#f5f5f5",
+    "--muted": "#242424",
+    "--muted-fg": "#a3a3a3",
+    "--border": "#333333",
+    "--header": "#0c0c0c",
+    "--header-fg": "#f5f5f5",
+    "--footer": "#0c0c0c",
+    "--sidebar": "#121212",
+    "--ring": primary,
+  } as Record<string, string>;
+}
+
+function normalizeHex(hex?: string | null): string | null {
+  if (!hex) return null;
+  let h = hex.trim();
+  if (!h.startsWith("#")) h = `#${h}`;
+  if (h.length === 4) {
+    h = `#${h[1]}${h[1]}${h[2]}${h[2]}${h[3]}${h[3]}`;
+  }
+  if (!/^#[0-9a-fA-F]{6}$/.test(h)) return null;
+  return h.toLowerCase();
 }
 
 function mixToward(hex: string, toward: string, amount: number): string {

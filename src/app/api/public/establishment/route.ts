@@ -7,6 +7,9 @@ export async function GET() {
     if (!est) return NextResponse.json({});
     return NextResponse.json({
       name: est.name,
+      primaryColor: est.primaryColor,
+      bgColor: est.bgColor,
+      cardColor: est.cardColor,
       whatsapp: est.whatsapp,
       pixKey: est.pixKey || "",
       pixName: est.pixName || "",

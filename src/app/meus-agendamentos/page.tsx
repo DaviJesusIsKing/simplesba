@@ -117,7 +117,7 @@ export default function MeusAgendamentosPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-10">
+    <div className="min-h-screen px-4 py-10 bg-[var(--bg)] text-[var(--fg)]">
       <div className="mx-auto max-w-lg">
         <Link
           href="/"

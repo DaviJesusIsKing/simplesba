@@ -136,7 +136,7 @@ export default function AgendarPage() {
     const dateBr = yy && mm && dd ? `${dd}/${mm}/${yy}` : d;
 
     return (
-      <div className="min-h-screen flex items-center justify-center px-4">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[var(--bg)] text-[var(--fg)]">
         <div className="card max-w-md w-full text-center space-y-4">
           <CheckCircle className="mx-auto text-green-400" size={48} />
           <h1 className="text-xl font-bold">Pedido recebido!</h1>
@@ -178,7 +178,7 @@ export default function AgendarPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-10">
+    <div className="min-h-screen px-4 py-10 bg-[var(--bg)] text-[var(--fg)]">
       <div className="mx-auto max-w-lg">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-[var(--muted-fg)] hover:text-[var(--primary)] mb-6">
           <ArrowLeft size={16} /> Voltar
@@ -234,8 +234,8 @@ export default function AgendarPage() {
                     onClick={() => setTime(t)}
                     className={`rounded-lg px-3 py-1.5 text-sm border ${
                       time === t
-                        ? "border-[var(--primary)] bg-[var(--primary)] text-black"
-                        : "border-[var(--border)] text-[var(--fg)] hover:border-[var(--primary)]"
+                        ? "slot-btn slot-btn-active"
+                        : "slot-btn"
                     }`}
                   >
                     {t}
