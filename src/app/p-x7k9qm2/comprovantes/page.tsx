@@ -105,8 +105,16 @@ export default function ComprovantesPage() {
     const r = await fetch(`/api/admin/appointments/receipt?id=${id}`);
     const j = await r.json();
     if (r.ok && j.receiptData) {
+      const data = j.receiptData as string;
       const w = window.open("");
-      if (w) w.document.write(`<img src="${j.receiptData}" style="max-width:100%"/>`);
+      if (!w) return;
+      if (data.startsWith("data:application/pdf")) {
+        w.document.write(
+          `<iframe src="${data}" style="width:100%;height:100%;border:0"></iframe>`
+        );
+      } else {
+        w.document.write(`<img src="${data}" style="max-width:100%"/>`);
+      }
     } else alert(j.error || "Sem comprovante");
   }
 

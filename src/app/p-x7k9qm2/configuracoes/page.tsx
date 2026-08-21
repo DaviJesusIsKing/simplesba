@@ -37,6 +37,9 @@ const defaults = {
   hoursByDay: "{}",
   pixQrData: "",
   showProducts: true,
+  telegramEnabled: false,
+  telegramBotToken: "",
+  telegramChatId: "",
 };
 
 const PRESETS = [
@@ -143,6 +146,9 @@ export default function ConfigPage() {
             hoursByDay: d.hoursByDay || "{}",
             pixQrData: d.pixQrData || "",
             showProducts: d.showProducts !== false,
+            telegramEnabled: !!d.telegramEnabled,
+            telegramBotToken: d.telegramBotToken || "",
+            telegramChatId: d.telegramChatId || "",
           });
         }
         setLoading(false);
@@ -470,25 +476,25 @@ export default function ConfigPage() {
             <option value="half">Só um sinal (entrada)</option>
           </select>
           <p className="text-xs text-[var(--muted-fg)] mt-1">
-            Se for sinal, o restante o cliente paga no salão no dia do atendimento.
+            O percentual do sinal é usado quando o cliente escolhe pagar só a entrada no PIX.
+            No agendamento ele também pode optar pelo valor cheio.
           </p>
         </div>
-        {form.pixChargeMode === "half" && (
-          <div>
-            <label className="label">Percentual do sinal (%)</label>
-            <input
-              className="input"
-              type="number"
-              min={1}
-              max={100}
-              value={form.pixChargePercent}
-              onChange={(e) => set("pixChargePercent", e.target.value)}
-            />
-            <p className="text-xs text-[var(--muted-fg)] mt-1">
-              Ex.: 50 = metade. Serviço de R$ 80 → PIX de R$ 40 agora + R$ 40 no salão.
-            </p>
-          </div>
-        )}
+        <div>
+          <label className="label">Percentual do sinal (opção do cliente) (%)</label>
+          <input
+            className="input"
+            type="number"
+            min={1}
+            max={100}
+            value={form.pixChargePercent}
+            onChange={(e) => set("pixChargePercent", e.target.value)}
+          />
+          <p className="text-xs text-[var(--muted-fg)] mt-1">
+            Ex.: 50. Serviço R$ 80 → se escolher sinal: R$ 40 no PIX + R$ 40 no salão.
+            Se escolher valor cheio: R$ 80 no PIX.
+          </p>
+        </div>
         <div>
           <label className="label">O que o cliente pode escolher</label>
           <select
@@ -497,10 +503,60 @@ export default function ConfigPage() {
             onChange={(e) => set("paymentPolicy", e.target.value)}
           >
             <option value="both">Pagar antes (PIX) ou na hora</option>
-            <option value="pix_only">Somente pagar antes (PIX)</option>
+            <option value="pix_only">Somente PIX antecipado (cliente escolhe sinal % ou valor cheio)</option>
             <option value="local_only">Somente pagar na hora</option>
           </select>
         </div>
+
+        <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
+          Alertas no Telegram
+        </p>
+        <p className="text-xs text-[var(--muted-fg)] -mt-2">
+          Receba no celular: novo agendamento e comprovante PIX. Crie um bot com @BotFather,
+          copie o token. Depois fale com o bot e descubra seu Chat ID com @userinfobot.
+        </p>
+        <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={!!form.telegramEnabled}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, telegramEnabled: e.target.checked }))
+            }
+          />
+          Ativar alertas no Telegram
+        </label>
+        <div>
+          <label className="label">Token do bot</label>
+          <input
+            className="input"
+            value={form.telegramBotToken}
+            onChange={(e) => set("telegramBotToken", e.target.value)}
+            placeholder="123456:ABC-DEF..."
+            autoComplete="off"
+          />
+        </div>
+        <div>
+          <label className="label">Chat ID (seu usuário)</label>
+          <input
+            className="input"
+            value={form.telegramChatId}
+            onChange={(e) => set("telegramChatId", e.target.value)}
+            placeholder="Ex: 712345678"
+          />
+        </div>
+        <button
+          type="button"
+          className="btn btn-secondary text-sm"
+          onClick={async () => {
+            setMsg("");
+            const res = await fetch("/api/admin/telegram-test", { method: "POST" });
+            const j = await res.json().catch(() => ({}));
+            if (!res.ok) setMsg(j.error || "Falha no teste do Telegram");
+            else setMsg("Mensagem de teste enviada! Confira o Telegram.");
+          }}
+        >
+          Enviar mensagem de teste
+        </button>
 
         <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
           Visual do site — presets

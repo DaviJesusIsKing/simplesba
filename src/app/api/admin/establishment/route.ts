@@ -43,6 +43,9 @@ export async function PUT(req: NextRequest) {
     hoursByDay: body.hoursByDay || "{}",
     pixQrData: body.pixQrData ?? "",
     showProducts: body.showProducts !== false,
+    telegramEnabled: !!body.telegramEnabled,
+    telegramBotToken: body.telegramBotToken ?? "",
+    telegramChatId: body.telegramChatId ?? "",
   };
   const existing = await prisma.establishment.findFirst();
   if (!existing) {

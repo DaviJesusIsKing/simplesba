@@ -51,6 +51,9 @@ model Establishment {
   pixQrData       String   @default("")
   /// Exibir seção de produtos no site
   showProducts    Boolean  @default(true)
+  telegramEnabled Boolean  @default(false)
+  telegramBotToken String  @default("")
+  telegramChatId  String   @default("")
   updatedAt       DateTime @updatedAt
   services        Service[]
   products        Product[]

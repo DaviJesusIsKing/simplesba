@@ -117,12 +117,14 @@ function Content() {
 
   async function onFile(file: File | null) {
     if (!file || !id) return;
-    if (!file.type.startsWith("image/")) {
-      setUploadMsg("Envie uma imagem JPG ou PNG");
+    const okType =
+      file.type.startsWith("image/") || file.type === "application/pdf";
+    if (!okType) {
+      setUploadMsg("Envie imagem (JPG/PNG) ou PDF");
       return;
     }
-    if (file.size > 900_000) {
-      setUploadMsg("Imagem grande demais (máx. ~900KB). Tire um print menor.");
+    if (file.size > 1_200_000) {
+      setUploadMsg("Arquivo grande demais (máx. ~1,2 MB).");
       return;
     }
     setUploading(true);
@@ -276,13 +278,13 @@ function Content() {
                     Enviar foto do comprovante
                   </p>
                   <p className="text-xs text-[var(--muted-fg)]">
-                    Tire um print do PIX pago e envie aqui (JPG ou PNG)
+                    Envie print do PIX (JPG/PNG) ou o PDF do comprovante
                   </p>
                   <label className="btn btn-primary w-full cursor-pointer">
-                    {uploading ? "Enviando…" : "Escolher imagem do comprovante"}
+                    {uploading ? "Enviando…" : "Escolher imagem ou PDF"}
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,application/pdf"
                       className="hidden"
                       disabled={uploading}
                       onChange={(e) => onFile(e.target.files?.[0] || null)}

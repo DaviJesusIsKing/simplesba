@@ -82,12 +82,14 @@ export default function MeusAgendamentosPage() {
 
   async function onFile(id: string, file: File | null) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setMsg("Envie uma imagem JPG ou PNG");
+    const okType =
+      file.type.startsWith("image/") || file.type === "application/pdf";
+    if (!okType) {
+      setMsg("Envie imagem (JPG/PNG) ou PDF");
       return;
     }
-    if (file.size > 900_000) {
-      setMsg("Imagem grande demais (máx. ~900KB)");
+    if (file.size > 1_200_000) {
+      setMsg("Arquivo grande demais (máx. ~1,2 MB)");
       return;
     }
     setUploadingId(id);
@@ -211,10 +213,10 @@ export default function MeusAgendamentosPage() {
                     <label className="btn btn-primary w-full cursor-pointer text-sm">
                       {uploadingId === a.id
                         ? "Enviando…"
-                        : "Escolher imagem do comprovante"}
+                        : "Escolher imagem ou PDF"}
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/*,application/pdf"
                         className="hidden"
                         disabled={uploadingId === a.id}
                         onChange={(e) => onFile(a.id, e.target.files?.[0] || null)}

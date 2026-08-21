@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { expireOldPendings, reservationDeadline } from "@/lib/appointments";
+import { sendTelegramAlert } from "@/lib/telegram";
 
 function normTime(t: string): string {
   const parts = String(t).trim().split(":");
@@ -22,7 +23,7 @@ export async function POST(req: NextRequest) {
   try {
     await expireOldPendings();
     const body = await req.json();
-    const { serviceId, date, time, clientName, clientPhone, paymentMethod } = body;
+    const { serviceId, date, time, clientName, clientPhone, paymentMethod, pixAmount } = body;
 
     if (!serviceId || !date || !time || !clientName || !clientPhone) {
       return NextResponse.json({ error: "Preencha todos os campos" }, { status: 400 });
@@ -133,13 +134,20 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const chargeMode = est.pixChargeMode || "full";
-    const pct = Math.min(100, Math.max(1, (est as { pixChargePercent?: number }).pixChargePercent ?? 50));
+    // Cliente escolhe no PIX: sinal (%) ou valor cheio
+    const pct = Math.min(
+      100,
+      Math.max(1, (est as { pixChargePercent?: number }).pixChargePercent ?? 50)
+    );
     let amountDue = service.price;
-    if (method === "pix" && chargeMode === "half") {
-      amountDue = Math.round(service.price * pct) / 100;
+    if (method === "pix") {
+      const choice = String(pixAmount || "full");
+      if (choice === "half") {
+        amountDue = Math.round(service.price * pct) / 100;
+      } else {
+        amountDue = service.price;
+      }
     }
-    // arredonda em centavos
     amountDue = Math.round(amountDue * 100) / 100;
 
     const paymentStatus = method === "pix" ? "awaiting_receipt" : "unpaid";
@@ -160,6 +168,14 @@ export async function POST(req: NextRequest) {
       },
       include: { service: true },
     });
+
+    const payLabel =
+      method === "pix"
+        ? `PIX R$ ${amountDue.toFixed(2)}`
+        : "Pagar na hora";
+    void sendTelegramAlert(
+      `📅 Novo agendamento\n\n👤 ${apt.clientName}\n📞 ${apt.clientPhone}\n✂️ ${apt.service.name}\n📆 ${dateStr} às ${timeStr}\n💰 ${payLabel}\n\nAbra o painel para confirmar.`
+    );
 
     return NextResponse.json({ ok: true, appointment: apt });
   } catch (e: unknown) {

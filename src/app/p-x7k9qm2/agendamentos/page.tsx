@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Trash2, MessageCircle, Bell, BellOff } from "lucide-react";
+import { ensureAdminNotifications, notifyAdmin } from "@/lib/admin-notify";
 
 type Apt = {
   id: string;
@@ -100,18 +101,51 @@ export default function AgendamentosPage() {
     const res = await fetch("/api/admin/appointments", { cache: "no-store" });
     if (res.ok) {
       const data: Apt[] = await res.json();
-      const pendingIds = data.filter((i) => i.status === "pending").map((i) => i.id);
+      const wasFirst = firstLoad.current;
 
-      if (!firstLoad.current && soundOn) {
-        const isNew = pendingIds.some((id) => !knownPending.current.has(id));
-        if (isNew) {
+      if (!wasFirst && soundOn) {
+        const newPending = data.filter(
+          (i) => i.status === "pending" && !knownPending.current.has(i.id)
+        );
+        if (newPending.length > 0) {
           playAlertSound();
           setNewFlash(true);
-          setTimeout(() => setNewFlash(false), 3000);
+          setTimeout(() => setNewFlash(false), 4000);
+          const a = newPending[0];
+          const extra =
+            newPending.length > 1 ? ` (+${newPending.length - 1})` : "";
+          void notifyAdmin(
+            "Novo agendamento",
+            `${a.clientName} marcou ${a.service.name} em ${a.date} às ${a.time}${extra}`,
+            "/p-x7k9qm2/agendamentos"
+          );
+        }
+        for (const i of data) {
+          const key = "rcpt-" + i.id;
+          if (
+            i.hasReceipt &&
+            i.paymentStatus === "awaiting_receipt" &&
+            !knownPending.current.has(key)
+          ) {
+            playAlertSound();
+            void notifyAdmin(
+              "Comprovante PIX",
+              `${i.clientName} enviou comprovante — ${i.service.name}`,
+              "/p-x7k9qm2/comprovantes"
+            );
+          }
         }
       }
+
       firstLoad.current = false;
-      knownPending.current = new Set(pendingIds);
+      const next = new Set<string>();
+      for (const i of data) {
+        if (i.status === "pending") next.add(i.id);
+        if (i.hasReceipt && i.paymentStatus === "awaiting_receipt") {
+          next.add("rcpt-" + i.id);
+        }
+      }
+      knownPending.current = next;
       setItems(data);
     }
     setLoading(false);
@@ -188,15 +222,29 @@ export default function AgendamentosPage() {
         <h1 className="text-2xl font-bold">Agendamentos</h1>
         <button
           type="button"
-          onClick={() => {
-            const next = !soundOn;
-            setSoundOn(next);
-            if (next) playAlertSound();
+          onClick={async () => {
+            if (!soundOn) {
+              const ok = await ensureAdminNotifications();
+              if (!ok) {
+                alert(
+                  "Permita notificações do site no Chrome (ícone do cadeado na barra de endereço) para receber avisos de novos agendamentos."
+                );
+              }
+              setSoundOn(true);
+              playAlertSound();
+              void notifyAdmin(
+                "Alertas ativados",
+                "Você será avisado de novos agendamentos e comprovantes.",
+                "/p-x7k9qm2/agendamentos"
+              );
+            } else {
+              setSoundOn(false);
+            }
           }}
           className={`btn text-sm ${soundOn ? "btn-primary" : "btn-secondary"}`}
         >
           {soundOn ? <Bell size={16} /> : <BellOff size={16} />}
-          {soundOn ? "Alertas ON — bipando" : "Ativar alertas sonoros"}
+          {soundOn ? "Alertas ON (som + Chrome)" : "Ativar alertas (som + Chrome)"}
         </button>
       </div>
 
@@ -208,7 +256,7 @@ export default function AgendamentosPage() {
 
       <p className="text-sm text-[var(--muted-fg)] mb-4">
         Total: {items.length} · Pendentes: {pending} · Hoje: {todayCount}
-        {soundOn && " · Alertas ativos (deixe esta aba aberta)"}
+        {soundOn && " · Alertas ativos (Chrome + som). Pode minimizar a aba; não feche o Chrome."}
       </p>
 
       <div className="flex flex-wrap gap-2 mb-6">
@@ -317,9 +365,18 @@ export default function AgendamentosPage() {
                             const r = await fetch(`/api/admin/appointments/receipt?id=${a.id}`);
                             const j = await r.json();
                             if (r.ok && j.receiptData) {
+                              const data = j.receiptData as string;
                               const w = window.open("");
                               if (w) {
-                                w.document.write(`<img src="${j.receiptData}" style="max-width:100%"/>`);
+                                if (data.startsWith("data:application/pdf")) {
+                                  w.document.write(
+                                    `<iframe src="${data}" style="width:100%;height:100%;border:0"></iframe>`
+                                  );
+                                } else {
+                                  w.document.write(
+                                    `<img src="${data}" style="max-width:100%"/>`
+                                  );
+                                }
                               }
                             } else alert(j.error || "Sem comprovante");
                           }}

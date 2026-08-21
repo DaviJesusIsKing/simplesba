@@ -1,8 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { expireOldPendings } from "@/lib/appointments";
+import { sendTelegramAlert } from "@/lib/telegram";
 
-const MAX_CHARS = 1_200_000; // ~1MB base64
+const MAX_CHARS = 1_800_000; // ~1.3MB base64
+
+function isAllowedReceipt(data: string) {
+  return (
+    data.startsWith("data:image/jpeg") ||
+    data.startsWith("data:image/jpg") ||
+    data.startsWith("data:image/png") ||
+    data.startsWith("data:image/webp") ||
+    data.startsWith("data:image/gif") ||
+    data.startsWith("data:application/pdf")
+  );
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,20 +24,27 @@ export async function POST(req: NextRequest) {
     if (!appointmentId || !receiptData) {
       return NextResponse.json({ error: "Comprovante obrigatório" }, { status: 400 });
     }
-    if (String(receiptData).length > MAX_CHARS) {
+    const data = String(receiptData);
+    if (data.length > MAX_CHARS) {
       return NextResponse.json(
-        { error: "Imagem muito grande. Use outra com menos de ~800KB." },
+        { error: "Arquivo muito grande. Use imagem ou PDF menor (~1MB)." },
         { status: 400 }
       );
     }
-    if (!String(receiptData).startsWith("data:image/")) {
-      return NextResponse.json({ error: "Envie uma imagem (JPG/PNG)" }, { status: 400 });
+    if (!isAllowedReceipt(data)) {
+      return NextResponse.json(
+        { error: "Envie imagem (JPG, PNG, WEBP) ou documento PDF" },
+        { status: 400 }
+      );
     }
 
     const apt = await prisma.appointment.findUnique({ where: { id: appointmentId } });
     if (!apt) return NextResponse.json({ error: "Agendamento não encontrado" }, { status: 404 });
     if (apt.status === "expired" || apt.status === "cancelled") {
-      return NextResponse.json({ error: "Este agendamento não aceita mais comprovante" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Este agendamento não aceita mais comprovante" },
+        { status: 400 }
+      );
     }
     if (apt.paymentMethod !== "pix") {
       return NextResponse.json({ error: "Este agendamento é pagamento na hora" }, { status: 400 });
@@ -34,13 +53,17 @@ export async function POST(req: NextRequest) {
     const updated = await prisma.appointment.update({
       where: { id: appointmentId },
       data: {
-        receiptData: String(receiptData),
+        receiptData: data,
         receiptNote: note ? String(note).slice(0, 200) : null,
         paymentStatus: "awaiting_receipt",
         rejectReason: null,
       },
       include: { service: { select: { name: true, price: true, duration: true } } },
     });
+
+    void sendTelegramAlert(
+      `📎 Comprovante PIX recebido\n\n👤 ${updated.clientName}\n✂️ ${updated.service.name}\n💰 R$ ${updated.amountDue.toFixed(2)}\n📆 ${updated.date} às ${updated.time}\n\nRevise em Comprovantes no painel.`
+    );
 
     return NextResponse.json({
       ok: true,
