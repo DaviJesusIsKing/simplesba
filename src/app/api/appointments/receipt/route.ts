@@ -61,8 +61,9 @@ export async function POST(req: NextRequest) {
       include: { service: { select: { name: true, price: true, duration: true } } },
     });
 
-    void sendTelegramAlert(
-      `📎 Comprovante PIX recebido\n\n👤 ${updated.clientName}\n✂️ ${updated.service.name}\n💰 R$ ${updated.amountDue.toFixed(2)}\n📆 ${updated.date} às ${updated.time}\n\nRevise em Comprovantes no painel.`
+        void sendTelegramAlert(
+      `📎 COMPROVANTE PIX\n\n👤 ${updated.clientName}\n✂️ ${updated.service.name}\n💰 R$ ${updated.amountDue.toFixed(2)}\n📆 ${updated.date} às ${updated.time}\n\nAprove ou recuse no painel.`,
+      { path: "/p-x7k9qm2/comprovantes", buttonLabel: "Abrir comprovantes" }
     );
 
     return NextResponse.json({

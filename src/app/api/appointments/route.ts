@@ -169,12 +169,13 @@ export async function POST(req: NextRequest) {
       include: { service: true },
     });
 
-    const payLabel =
+        const payLabel =
       method === "pix"
         ? `PIX R$ ${amountDue.toFixed(2)}`
         : "Pagar na hora";
     void sendTelegramAlert(
-      `📅 Novo agendamento\n\n👤 ${apt.clientName}\n📞 ${apt.clientPhone}\n✂️ ${apt.service.name}\n📆 ${dateStr} às ${timeStr}\n💰 ${payLabel}\n\nAbra o painel para confirmar.`
+      `📅 NOVO AGENDAMENTO\n\n👤 ${apt.clientName}\n📞 ${apt.clientPhone}\n✂️ ${apt.service.name}\n📆 ${dateStr} às ${timeStr}\n💰 ${payLabel}\n\nConfirme no painel.`,
+      { path: "/p-x7k9qm2/agendamentos", buttonLabel: "Abrir agendamentos" }
     );
 
     return NextResponse.json({ ok: true, appointment: apt });

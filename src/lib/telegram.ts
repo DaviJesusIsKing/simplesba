@@ -1,6 +1,14 @@
 import { prisma } from "./prisma";
 
-export async function sendTelegramAlert(text: string) {
+function siteBase() {
+  const u = (process.env.NEXTAUTH_URL || "").replace(/\/$/, "");
+  return u || "";
+}
+
+export async function sendTelegramAlert(
+  text: string,
+  options?: { path?: string; buttonLabel?: string }
+) {
   try {
     const est = await prisma.establishment.findFirst();
     if (!est) return { ok: false, reason: "no_est" };
@@ -13,15 +21,28 @@ export async function sendTelegramAlert(text: string) {
       return { ok: false, reason: "disabled" };
     }
 
+    const base = siteBase();
+    const path = options?.path || "/p-x7k9qm2/agendamentos";
+    const buttonUrl = base ? `${base}${path}` : "";
+    const label = options?.buttonLabel || "Abrir painel admin";
+
+    const body: Record<string, unknown> = {
+      chat_id: chatId,
+      text,
+      disable_web_page_preview: true,
+    };
+
+    if (buttonUrl.startsWith("https://")) {
+      body.reply_markup = {
+        inline_keyboard: [[{ text: label, url: buttonUrl }]],
+      };
+    }
+
     const url = `https://api.telegram.org/bot${token}/sendMessage`;
     const res = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        disable_web_page_preview: true,
-      }),
+      body: JSON.stringify(body),
     });
     if (!res.ok) {
       const err = await res.text();
