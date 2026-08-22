@@ -16,6 +16,8 @@ type Apt = {
   paymentStatus?: string;
   amountDue?: number;
   hasReceipt?: boolean;
+  hasRefundProof?: boolean;
+  refundNote?: string | null;
   rejectReason?: string | null;
   service: { name: string; price: number; duration: number };
 };
@@ -168,13 +170,60 @@ export default function AgendamentosPage() {
     return () => clearInterval(iv);
   }, [soundOn, items]);
 
-  async function setStatus(id: string, status: string) {
+  const [cancelId, setCancelId] = useState<string | null>(null);
+  const [refundNote, setRefundNote] = useState("");
+  const [refundData, setRefundData] = useState("");
+  const [cancelSaving, setCancelSaving] = useState(false);
+
+  async function setStatus(
+    id: string,
+    status: string,
+    extra?: { refundProofData?: string; refundNote?: string }
+  ) {
     await fetch(`/api/admin/appointments?id=${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status }),
+      body: JSON.stringify({ status, ...extra }),
     });
     load(true);
+  }
+
+  function onStatusChange(id: string, next: string, apt: Apt) {
+    if (next === "cancelled") {
+      setCancelId(id);
+      setRefundNote("");
+      setRefundData("");
+      return;
+    }
+    void setStatus(id, next);
+  }
+
+  async function confirmCancel() {
+    if (!cancelId) return;
+    setCancelSaving(true);
+    await setStatus(cancelId, "cancelled", {
+      refundProofData: refundData || undefined,
+      refundNote: refundNote || undefined,
+    });
+    setCancelSaving(false);
+    setCancelId(null);
+  }
+
+  async function viewRefund(id: string) {
+    const r = await fetch(`/api/admin/appointments/refund?id=${id}`);
+    const j = await r.json();
+    if (r.ok && j.refundProofData) {
+      const data = j.refundProofData as string;
+      const w = window.open("");
+      if (!w) return;
+      if (data.startsWith("data:application/pdf")) {
+        w.document.write(
+          `<iframe src="${data}" style="width:100%;height:100%;border:0"></iframe>`
+        );
+      } else {
+        w.document.write(`<img src="${data}" style="max-width:100%"/>`);
+      }
+    } else alert(j.error || "Sem comprovante de reembolso");
   }
 
   async function remove(id: string) {
@@ -345,13 +394,22 @@ export default function AgendamentosPage() {
                     {a.paymentMethod === "local" && (
                       <p className="text-xs text-[var(--muted-fg)] mt-1">Pagamento na hora</p>
                     )}
+                    {a.status === "cancelled" && a.hasRefundProof && (
+                      <button
+                        type="button"
+                        className="text-xs text-[var(--primary)] underline mt-1"
+                        onClick={() => viewRefund(a.id)}
+                      >
+                        Ver comprovante de reembolso
+                      </button>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-2 items-stretch sm:items-end">
                     <select
                       className="input w-auto text-sm py-1.5"
                       value={a.status === "expired" ? "cancelled" : a.status}
-                      onChange={(e) => setStatus(a.id, e.target.value)}
+                      onChange={(e) => onStatusChange(a.id, e.target.value, a)}
                       disabled={a.status === "expired"}
                     >
                       <option value="pending">{statusLabel.pending}</option>
@@ -457,6 +515,67 @@ export default function AgendamentosPage() {
           {filtered.length === 0 && (
             <p className="text-[var(--muted-fg)]">Nenhum agendamento neste filtro.</p>
           )}
+        </div>
+      )}
+
+      {cancelId && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4">
+          <div className="card w-full max-w-md space-y-3 shadow-xl">
+            <h2 className="text-lg font-semibold">Cancelar agendamento</h2>
+            <p className="text-sm text-[var(--muted-fg)]">
+              Se o cliente já pagou no PIX, anexe o comprovante do reembolso para
+              ficar organizado no histórico.
+            </p>
+            <div>
+              <label className="label">Observação (opcional)</label>
+              <input
+                className="input"
+                value={refundNote}
+                onChange={(e) => setRefundNote(e.target.value)}
+                placeholder="Ex.: reembolsado via PIX em 22/08"
+              />
+            </div>
+            <div>
+              <label className="label">Foto/PDF do reembolso (opcional)</label>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                className="block w-full text-sm text-[var(--muted-fg)]"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  if (file.size > 1_200_000) {
+                    alert("Arquivo grande demais (~1,2 MB)");
+                    return;
+                  }
+                  const reader = new FileReader();
+                  reader.onload = () => setRefundData(String(reader.result || ""));
+                  reader.readAsDataURL(file);
+                }}
+              />
+              {refundData && (
+                <p className="text-xs text-green-400 mt-1">Arquivo anexado</p>
+              )}
+            </div>
+            <div className="flex gap-2 pt-1">
+              <button
+                type="button"
+                className="btn btn-secondary flex-1"
+                onClick={() => setCancelId(null)}
+                disabled={cancelSaving}
+              >
+                Voltar
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger flex-1"
+                onClick={() => void confirmCancel()}
+                disabled={cancelSaving}
+              >
+                {cancelSaving ? "Salvando…" : "Confirmar cancelamento"}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

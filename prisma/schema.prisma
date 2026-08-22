@@ -98,6 +98,9 @@ model Appointment {
   receiptData     String?
   receiptNote     String?
   rejectReason    String?
+  /// Comprovante de reembolso (quando cancela após PIX)
+  refundProofData String?
+  refundNote      String?
   expiresAt       DateTime?
   createdAt       DateTime  @default(now())
   serviceId       String

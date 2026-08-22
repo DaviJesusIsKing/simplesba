@@ -36,9 +36,10 @@ export async function GET() {
     take: 100,
   });
   return NextResponse.json(
-    items.map(({ receiptData, ...rest }) => ({
+    items.map(({ receiptData, refundProofData, ...rest }) => ({
       ...rest,
       hasReceipt: !!receiptData,
+      hasRefundProof: !!refundProofData,
     }))
   );
 }
@@ -182,9 +183,34 @@ export async function PATCH(req: NextRequest) {
   if (!allowed.includes(body.status)) {
     return NextResponse.json({ error: "Status inválido" }, { status: 400 });
   }
-  const data: { status: string; expiresAt?: null } = { status: body.status };
+  const data: {
+    status: string;
+    expiresAt?: null;
+    refundProofData?: string | null;
+    refundNote?: string | null;
+  } = { status: body.status };
   if (body.status === "confirmed" || body.status === "done") {
     data.expiresAt = null;
+  }
+  if (body.status === "cancelled") {
+    if (body.refundProofData) {
+      const raw = String(body.refundProofData);
+      if (raw.length > 1_800_000) {
+        return NextResponse.json({ error: "Arquivo de reembolso muito grande" }, { status: 400 });
+      }
+      const ok =
+        raw.startsWith("data:image/") || raw.startsWith("data:application/pdf");
+      if (!ok) {
+        return NextResponse.json(
+          { error: "Reembolso: envie imagem ou PDF" },
+          { status: 400 }
+        );
+      }
+      data.refundProofData = raw;
+    }
+    if (body.refundNote != null) {
+      data.refundNote = String(body.refundNote).slice(0, 300);
+    }
   }
   const item = await prisma.appointment.update({
     where: { id },
