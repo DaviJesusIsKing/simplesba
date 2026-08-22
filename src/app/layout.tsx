@@ -10,6 +10,13 @@ export const metadata: Metadata = {
   description: "Cortes, barba e estilo. Agende online.",
 };
 
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#0f0f0f",
+};
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 

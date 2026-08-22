@@ -1,5 +1,6 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { MobileCtaBar } from "@/components/MobileCtaBar";
 import { Scissors, MapPin, Clock, Phone, Instagram } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
@@ -77,7 +78,7 @@ export default async function HomePage() {
 
 
   return (
-    <div>
+    <div className="has-mobile-cta">
       <Header name={name} showProducts={est?.showProducts !== false} />
 
       {error && (
@@ -90,16 +91,16 @@ export default async function HomePage() {
 
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[color-mix(in_srgb,var(--primary)_10%,transparent)] to-transparent" />
-        <div className="relative mx-auto max-w-6xl px-4 py-20 text-center">
+        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:py-20 text-center">
           <p className="mb-3 text-sm font-medium tracking-wide text-primary">
             ESTILO & QUALIDADE
           </p>
-          <h1 className="mb-4 text-4xl font-bold sm:text-5xl">{name}</h1>
+          <h1 className="mb-4 text-3xl font-bold leading-tight sm:text-5xl">{name}</h1>
           <p className="mx-auto mb-8 max-w-xl text-muted">
             {est?.description ||
               "Cortes masculinos, barba e cuidados pessoais."}
           </p>
-          <div className="flex flex-wrap justify-center gap-3">
+          <div className="hero-btns flex flex-wrap justify-center gap-3">
             <a href="/agendar" className="btn btn-primary">
               Agendar horário
             </a>
@@ -279,6 +280,7 @@ export default async function HomePage() {
         phone={est?.phone || ""}
         instagram={est?.instagram || ""}
       />
+      <MobileCtaBar whatsapp={whatsapp} />
     </div>
   );
 }

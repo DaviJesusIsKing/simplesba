@@ -171,7 +171,7 @@ function Content() {
     (data?.paymentStatus === "awaiting_receipt" || data?.paymentStatus === "rejected");
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10 bg-[var(--bg)] text-[var(--fg)]">
+    <div className="min-h-screen flex items-center justify-center px-4 py-6 sm:py-10 pb-8 bg-[var(--bg)] text-[var(--fg)]">
       <div className="card max-w-md w-full text-center space-y-4">
         {isConfirmed && <CheckCircle className="mx-auto text-green-400" size={48} />}
         {isPending && <Clock className="mx-auto text-amber-400" size={48} />}

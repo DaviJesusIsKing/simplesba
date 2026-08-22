@@ -17,10 +17,24 @@
   --ring: #d4a017;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
 body {
   background: var(--bg);
   color: var(--fg);
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* evita zoom automático no iPhone ao focar input */
+.input,
+select.input,
+textarea.input,
+button.btn {
+  font-size: 16px;
 }
 
 .btn {
@@ -28,10 +42,13 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  border-radius: 0.5rem;
-  padding: 0.625rem 1.25rem;
-  font-weight: 500;
+  border-radius: 0.75rem;
+  padding: 0.75rem 1.25rem;
+  min-height: 48px;
+  font-weight: 600;
   transition: 0.15s;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }
 .btn-primary {
@@ -52,16 +69,17 @@ body {
   background: var(--card);
   color: var(--card-fg);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
+  border-radius: 1rem;
   padding: 1.25rem;
 }
 
 .input {
   width: 100%;
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--border);
   background: var(--muted);
-  padding: 0.625rem 1rem;
+  padding: 0.75rem 1rem;
+  min-height: 48px;
   color: var(--fg);
 }
 .input:focus {
@@ -72,13 +90,14 @@ body {
   display: block;
   font-size: 0.875rem;
   color: var(--muted-fg);
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.4rem;
 }
 
 .site-header {
   background: var(--header);
   color: var(--header-fg);
   border-bottom: 1px solid var(--border);
+  padding-top: env(safe-area-inset-top, 0);
 }
 .site-header a { color: var(--header-fg); }
 .site-header a:hover { color: var(--primary); }
@@ -86,20 +105,68 @@ body {
   background: var(--footer);
   color: var(--muted-fg);
   border-top: 1px solid var(--border);
+  padding-bottom: env(safe-area-inset-bottom, 0);
 }
 
-/* slots de horário */
 .slot-btn {
-  border-radius: 0.5rem;
+  border-radius: 0.75rem;
   border: 1px solid var(--border);
-  padding: 0.5rem 0.75rem;
-  font-size: 0.875rem;
+  padding: 0.75rem 0.5rem;
+  min-height: 48px;
+  min-width: 4.5rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
   color: var(--fg);
   background: var(--card);
+  touch-action: manipulation;
 }
 .slot-btn:hover { border-color: var(--primary); }
 .slot-btn-active {
   border-color: var(--primary);
   background: var(--primary);
   color: var(--primary-fg);
+}
+
+/* barra fixa mobile */
+.mobile-cta-bar {
+  display: none;
+}
+@media (max-width: 767px) {
+  .mobile-cta-bar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+    background: color-mix(in srgb, var(--header) 92%, transparent);
+    backdrop-filter: blur(10px);
+    border-top: 1px solid var(--border);
+  }
+  .mobile-cta-bar .btn {
+    flex: 1;
+  }
+  /* espaço pro botão fixo não cobrir conteúdo */
+  .has-mobile-cta {
+    padding-bottom: 5.5rem;
+  }
+  .hero-btns .btn {
+    width: 100%;
+  }
+  .hero-btns {
+    flex-direction: column;
+    width: 100%;
+    max-width: 20rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+details.card summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
 }

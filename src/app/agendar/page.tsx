@@ -178,8 +178,8 @@ export default function AgendarPage() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-10 bg-[var(--bg)] text-[var(--fg)]">
-      <div className="mx-auto max-w-lg">
+    <div className="min-h-screen px-4 py-6 sm:py-10 pb-28 bg-[var(--bg)] text-[var(--fg)]">
+      <div className="mx-auto max-w-lg w-full">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-[var(--muted-fg)] hover:text-[var(--primary)] mb-6">
           <ArrowLeft size={16} /> Voltar
         </Link>
@@ -365,7 +365,7 @@ export default function AgendarPage() {
                         <p>3. Envie o comprovante (foto ou PDF) na própria página.</p>
                         <p className="text-amber-300 font-medium">
                           Se a aba fechar: abra <strong>Meus horários</strong> no menu,
-                          digite o mesmo WhatsApp/Telefone e envie o comprovante por lá.
+                          digite o mesmo WhatsApp e envie o comprovante por lá.
                         </p>
                       </div>
                     </div>
@@ -375,13 +375,15 @@ export default function AgendarPage() {
             </div>
           )}
 
-          <button
-            type="submit"
-            className="btn btn-primary w-full"
-            disabled={saving || !time || !serviceId}
-          >
-            {saving ? <Loader2 className="animate-spin" size={18} /> : "Confirmar agendamento"}
-          </button>
+          <div className="sticky bottom-3 z-10 pt-2 sm:static">
+            <button
+              type="submit"
+              className="btn btn-primary w-full shadow-lg shadow-black/30"
+              disabled={saving || !time || !serviceId}
+            >
+              {saving ? <Loader2 className="animate-spin" size={18} /> : "Confirmar agendamento"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
