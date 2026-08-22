@@ -10,6 +10,7 @@ import {
   Settings,
   KeyRound,
   Calendar,
+  UserPlus,
   FileImage,
   LogOut,
   Loader2,
@@ -19,6 +20,7 @@ import { adminThemeFromEst } from "@/lib/theme";
 const nav = [
   { href: "/p-x7k9qm2", label: "Dashboard", icon: LayoutDashboard },
   { href: "/p-x7k9qm2/agendamentos", label: "Agendamentos", icon: Calendar },
+  { href: "/p-x7k9qm2/novo-agendamento", label: "Novo agendamento", icon: UserPlus },
   { href: "/p-x7k9qm2/comprovantes", label: "Comprovantes", icon: FileImage },
   { href: "/p-x7k9qm2/servicos", label: "Serviços", icon: Scissors },
   { href: "/p-x7k9qm2/produtos", label: "Produtos", icon: Package },

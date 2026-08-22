@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Loader2, Trash2, MessageCircle, Bell, BellOff } from "lucide-react";
 import { ensureAdminNotifications, notifyAdmin } from "@/lib/admin-notify";
@@ -220,6 +221,9 @@ export default function AgendamentosPage() {
     <div>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-2">
         <h1 className="text-2xl font-bold">Agendamentos</h1>
+        <Link href="/p-x7k9qm2/novo-agendamento" className="btn btn-primary text-sm">
+          + Novo agendamento
+        </Link>
         <button
           type="button"
           onClick={async () => {
