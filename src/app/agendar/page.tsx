@@ -365,7 +365,7 @@ export default function AgendarPage() {
                         <p>3. Envie o comprovante (foto ou PDF) na própria página.</p>
                         <p className="text-amber-300 font-medium">
                           Se a aba fechar: abra <strong>Meus horários</strong> no menu,
-                          digite o mesmo WhatsApp e envie o comprovante por lá.
+                          digite o mesmo WhatsApp/Telefone e envie o comprovante por lá.
                         </p>
                       </div>
                     </div>
