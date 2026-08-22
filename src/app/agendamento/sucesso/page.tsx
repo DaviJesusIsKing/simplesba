@@ -248,9 +248,28 @@ function Content() {
               )}
             </div>
 
+            {isPix && needReceipt && (
+              <div className="rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm text-left space-y-1.5">
+                <p className="font-semibold text-amber-200">Importante</p>
+                <p className="text-[var(--muted-fg)] text-xs">
+                  Pague o PIX e envie o comprovante nesta página. A reserva pode expirar se demorar.
+                </p>
+                <p className="text-amber-200 text-xs">
+                  Se a aba fechar: vá em <strong>Meus horários (comprovante)</strong>, digite o mesmo WhatsApp
+                  do agendamento e envie o comprovante por lá.
+                </p>
+              </div>
+            )}
+
             {isPix && needReceipt && pix.pixKey && (
               <div className="text-left rounded-lg border border-[var(--primary)]/40 bg-[var(--muted)] p-4 space-y-3">
-                <p className="text-sm font-semibold">Pagamento PIX</p>
+                <p className="text-sm font-semibold">Pagamento PIX — passo a passo</p>
+                <ol className="text-xs text-[var(--muted-fg)] list-decimal pl-4 space-y-1">
+                  <li>Copie a chave ou leia o QR no app do banco.</li>
+                  <li>Pague o valor indicado (exatamente).</li>
+                  <li>Envie o print ou PDF do comprovante no botão abaixo.</li>
+                  <li>Aguarde a confirmação da barbearia (o status atualiza aqui).</li>
+                </ol>
                 {pix.pixName && (
                   <p className="text-xs text-[var(--muted-fg)]">Recebedor: {pix.pixName}</p>
                 )}

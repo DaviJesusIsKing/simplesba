@@ -352,15 +352,22 @@ export default function AgendarPage() {
                         </span>
                       </button>
                     </div>
-                    <div className="rounded-lg border-2 border-[var(--primary)]/50 bg-[var(--primary)]/10 p-3 text-sm">
+                    <div className="rounded-lg border-2 border-[var(--primary)]/50 bg-[var(--primary)]/10 p-3 text-sm space-y-2">
                       <p className="text-[var(--muted-fg)]">Você vai pagar agora:</p>
                       <p className="text-2xl font-bold">
                         R${" "}
                         {(pixAmount === "half" ? sinal : total).toFixed(2)}
                       </p>
-                      <p className="text-xs text-amber-300 mt-1">
-                        Depois envie a foto do comprovante na próxima tela.
-                      </p>
+                      <div className="text-xs space-y-1.5 border-t border-[var(--border)] pt-2 text-[var(--muted-fg)]">
+                        <p className="font-medium text-[var(--fg)]">Como funciona:</p>
+                        <p>1. Confirme o agendamento nesta tela.</p>
+                        <p>2. Na próxima página: copie a chave ou leia o QR e pague o PIX.</p>
+                        <p>3. Envie o comprovante (foto ou PDF) na própria página.</p>
+                        <p className="text-amber-300 font-medium">
+                          Se a aba fechar: abra <strong>Meus horários</strong> no menu,
+                          digite o mesmo WhatsApp e envie o comprovante por lá.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 );

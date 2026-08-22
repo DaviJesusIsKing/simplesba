@@ -131,8 +131,9 @@ export default function MeusAgendamentosPage() {
           Meus agendamentos
         </h1>
         <p className="text-sm text-[var(--muted-fg)] mb-6">
-          Digite o telefone do agendamento. Se escolheu PIX e fechou a página, envie o
-          comprovante aqui.
+          Digite o <strong className="text-[var(--fg)]">mesmo WhatsApp</strong> usado no
+          agendamento. Aqui você consulta o status e, se for PIX, envia ou reenvia o
+          comprovante (foto ou PDF) caso tenha fechado a outra página.
         </p>
 
         <form onSubmit={search} className="card space-y-3 mb-6">
