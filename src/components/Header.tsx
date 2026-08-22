@@ -27,6 +27,7 @@ export function Header({
           <a href="/meus-agendamentos">Meus horários</a>
           <a href="#servicos">Serviços</a>
           {showProducts && <a href="#produtos">Produtos</a>}
+          <a href="#faq">FAQ</a>
           <a href="#contato">Contato</a>
         </nav>
         <button
@@ -54,6 +55,9 @@ export function Header({
               Produtos
             </a>
           )}
+          <a href="#faq" onClick={() => setOpen(false)}>
+            FAQ
+          </a>
           <a href="#contato" onClick={() => setOpen(false)}>
             Contato
           </a>

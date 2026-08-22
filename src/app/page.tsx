@@ -184,6 +184,55 @@ export default async function HomePage() {
       </section>
       )}
 
+
+      <section id="faq" className="mx-auto max-w-6xl px-4 py-12">
+        <h2 className="mb-2 text-2xl font-bold">Perguntas frequentes</h2>
+        <p className="text-sm text-[var(--muted-fg)] mb-6">
+          Dúvidas comuns sobre agendamento e pagamento.
+        </p>
+        <div className="space-y-3">
+          {[
+            {
+              q: "Como faço para agendar?",
+              a: "Clique em Agendar horário, escolha o serviço, o dia e um horário livre. Informe seu nome e WhatsApp e confirme.",
+            },
+            {
+              q: "Posso pagar pelo PIX?",
+              a: "Sim, se a barbearia liberar. Você pode pagar um sinal (por exemplo 50%) ou o valor cheio no PIX e enviar o comprovante no site. Também pode existir a opção de pagar só na hora, no salão.",
+            },
+            {
+              q: "Enviei o comprovante e fechei a página. E agora?",
+              a: "Entre em Meus horários, digite o mesmo telefone do agendamento e envie o comprovante de novo, se precisar.",
+            },
+            {
+              q: "Quanto tempo tenho para confirmar o pagamento?",
+              a: "O horário fica reservado por cerca de 15 minutos. Se o pagamento/comprovante não for resolvido a tempo, a reserva pode expirar e o horário liberar.",
+            },
+            {
+              q: "Posso cancelar ou remarcar?",
+              a: "Fale pelo WhatsApp da barbearia o quanto antes. Assim liberam o horário para outra pessoa e tentam encaixar outro dia para você.",
+            },
+            {
+              q: "Criança ou corte diferente do site?",
+              a: "Se não encontrar o serviço, chame no WhatsApp. Muitas vezes dá para combinar no salão.",
+            },
+          ].map((item) => (
+            <details
+              key={item.q}
+              className="card group open:ring-1 open:ring-[var(--primary)]/30"
+            >
+              <summary className="cursor-pointer font-medium list-none flex justify-between gap-3 items-center">
+                {item.q}
+                <span className="text-[var(--primary)] text-lg leading-none">+</span>
+              </summary>
+              <p className="mt-3 text-sm text-[var(--muted-fg)] border-t border-[var(--border)] pt-3">
+                {item.a}
+              </p>
+            </details>
+          ))}
+        </div>
+      </section>
+
       <section id="contato" className="mx-auto max-w-6xl px-4 py-12">
         <h2 className="mb-6 text-2xl font-bold">Informações</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
