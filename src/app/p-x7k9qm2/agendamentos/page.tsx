@@ -259,6 +259,17 @@ export default function AgendamentosPage() {
     (i) => i.date === today && i.status !== "cancelled" && i.status !== "expired"
   ).length;
 
+  /** Agenda do dia — só quem ainda atende (pendente/confirmado), ordenado por hora */
+  const agendaHoje = useMemo(() => {
+    return items
+      .filter(
+        (i) =>
+          i.date === today &&
+          (i.status === "pending" || i.status === "confirmed")
+      )
+      .sort((a, b) => a.time.localeCompare(b.time));
+  }, [items, today]);
+
   function remainingLabel(expiresAt?: string | null) {
     if (!expiresAt) return null;
     const left = Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000));
@@ -311,6 +322,63 @@ export default function AgendamentosPage() {
         Total: {items.length} · Pendentes: {pending} · Hoje: {todayCount}
         {soundOn && " · Alertas ativos (Chrome + som). Pode minimizar a aba; não feche o Chrome."}
       </p>
+
+      {agendaHoje.length > 0 && (
+        <div className="mb-5 rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+          <div className="px-3 py-2.5 border-b border-[var(--border)] bg-[var(--muted)]/40">
+            <p className="text-sm font-semibold text-[var(--primary)]">
+              Agenda de hoje · {agendaHoje.length}{" "}
+              {agendaHoje.length === 1 ? "horário" : "horários"}
+            </p>
+            <p className="text-xs text-[var(--muted-fg)]">
+              Veja de relance a que horas você atende
+            </p>
+          </div>
+          <ul className="divide-y divide-[var(--border)]">
+            {agendaHoje.map((a) => (
+              <li
+                key={a.id}
+                className="flex items-stretch gap-0 min-h-[3.25rem]"
+              >
+                <div
+                  className={`w-20 shrink-0 flex items-center justify-center font-bold text-base tabular-nums ${
+                    a.status === "confirmed"
+                      ? "bg-green-500/20 text-green-300"
+                      : "bg-amber-500/15 text-amber-300"
+                  }`}
+                >
+                  {a.time}
+                </div>
+                <div className="flex-1 px-3 py-2 min-w-0 flex flex-col justify-center">
+                  <p className="font-medium text-sm truncate">{a.clientName}</p>
+                  <p className="text-xs text-[var(--muted-fg)] truncate">
+                    {a.service.name}
+                    {a.service.duration ? ` · ${a.service.duration} min` : ""}
+                  </p>
+                </div>
+                <div className="pr-3 flex items-center">
+                  <span
+                    className={`text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full border ${
+                      a.status === "confirmed"
+                        ? "border-green-500/40 text-green-300"
+                        : "border-amber-500/40 text-amber-300"
+                    }`}
+                  >
+                    {a.status === "confirmed" ? "OK" : "Pend."}
+                  </span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {agendaHoje.length === 0 && filter === "today" && (
+        <p className="text-sm text-[var(--muted-fg)] mb-4">
+          Nenhum atendimento ativo para hoje.
+        </p>
+      )}
+
 
       <div className="flex flex-wrap gap-2 mb-6">
         {(

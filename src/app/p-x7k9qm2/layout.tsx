@@ -109,25 +109,39 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="md:hidden flex items-center gap-2 overflow-x-auto border-b border-[var(--border)] bg-[var(--sidebar)] px-2 py-2">
-          {nav.map((item) => {
-            const Icon = item.icon;
-            const active = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`shrink-0 flex items-center gap-1 rounded-lg px-2 py-1.5 text-xs ${
-                  active
-                    ? "bg-[var(--primary)] text-[var(--primary-fg)]"
-                    : "text-[var(--muted-fg)]"
-                }`}
-              >
-                <Icon size={14} />
-                {item.label}
-              </Link>
-            );
-          })}
+                <header className="md:hidden border-b border-[var(--border)] bg-[var(--sidebar)] px-2 py-2.5 overflow-x-auto">
+          <div className="flex items-center gap-2 min-w-min">
+            {nav.map((item) => {
+              const Icon = item.icon;
+              const active =
+                pathname === item.href ||
+                (item.href !== "/p-x7k9qm2" && pathname.startsWith(item.href));
+              const short =
+                item.label === "Novo agendamento"
+                  ? "Novo"
+                  : item.label === "Configurações"
+                    ? "Config"
+                    : item.label === "Comprovantes"
+                      ? "Comprov."
+                      : item.label === "Agendamentos"
+                        ? "Agenda"
+                        : item.label;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`shrink-0 flex flex-col items-center justify-center gap-0.5 rounded-xl px-3 py-2 min-w-[4.25rem] min-h-[3.25rem] text-[11px] font-medium ${
+                    active
+                      ? "bg-[var(--primary)] text-[var(--primary-fg)]"
+                      : "text-[var(--muted-fg)] bg-[var(--muted)]/40"
+                  }`}
+                >
+                  <Icon size={18} />
+                  <span className="leading-tight text-center">{short}</span>
+                </Link>
+              );
+            })}
+          </div>
         </header>
         <main className="flex-1 p-4 md:p-8 overflow-auto bg-[var(--bg)] text-[var(--fg)]">
           {children}

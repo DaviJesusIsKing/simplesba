@@ -2,27 +2,32 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import {
   Calendar,
-  Scissors,
   Package,
   FileImage,
   Settings,
   ExternalLink,
-  UserPlus,
+  CalendarDays,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
+function todayISO() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
 export default async function AdminDashboard() {
-  let services = 0;
   let products = 0;
   let appointments = 0;
   let pending = 0;
   let receipts = 0;
+  let todayJobs = 0;
   let estName = "—";
 
+  const today = todayISO();
+
   try {
-    const [s, p, a, pend, rec, est] = await Promise.all([
-      prisma.service.count(),
+    const [p, a, pend, rec, todayCount, est] = await Promise.all([
       prisma.product.count(),
       prisma.appointment.count(),
       prisma.appointment.count({ where: { status: "pending" } }),
@@ -33,13 +38,19 @@ export default async function AdminDashboard() {
           receiptData: { not: null },
         },
       }),
+      prisma.appointment.count({
+        where: {
+          date: today,
+          status: { in: ["pending", "confirmed", "done"] },
+        },
+      }),
       prisma.establishment.findFirst(),
     ]);
-    services = s;
     products = p;
     appointments = a;
     pending = pend;
     receipts = rec;
+    todayJobs = todayCount;
     estName = est?.name || "—";
   } catch (e) {
     console.error(e);
@@ -54,19 +65,20 @@ export default async function AdminDashboard() {
       icon: Calendar,
     },
     {
+      href: "/p-x7k9qm2/agendamentos",
+      label: "Hoje",
+      value: String(todayJobs),
+      sub: todayJobs === 1 ? "atendimento hoje" : "atendimentos hoje",
+      icon: CalendarDays,
+      highlight: todayJobs > 0,
+    },
+    {
       href: "/p-x7k9qm2/comprovantes",
       label: "Comprovantes",
       value: String(receipts),
       sub: "para revisar",
       icon: FileImage,
       highlight: receipts > 0,
-    },
-    {
-      href: "/p-x7k9qm2/servicos",
-      label: "Serviços",
-      value: String(services),
-      sub: "cadastrados",
-      icon: Scissors,
     },
     {
       href: "/p-x7k9qm2/produtos",
@@ -89,7 +101,7 @@ export default async function AdminDashboard() {
           const Icon = c.icon;
           return (
             <Link
-              key={c.href}
+              key={c.label}
               href={c.href}
               className={`card !p-4 sm:!p-5 flex flex-col min-h-[7.5rem] sm:min-h-[8.5rem] active:scale-[0.98] transition ${
                 c.highlight ? "ring-1 ring-[var(--primary)]/50" : ""
@@ -110,10 +122,10 @@ export default async function AdminDashboard() {
 
       <div className="grid grid-cols-1 gap-3">
         <Link
-          href="/p-x7k9qm2/novo-agendamento"
+          href="/p-x7k9qm2/agendamentos"
           className="btn btn-primary w-full !min-h-12"
         >
-          <UserPlus size={18} /> Novo agendamento
+          <Calendar size={18} /> Meus agendamentos
         </Link>
         <div className="grid grid-cols-2 gap-3">
           <Link href="/p-x7k9qm2/configuracoes" className="btn btn-secondary w-full">
