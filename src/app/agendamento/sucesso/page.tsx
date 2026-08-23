@@ -83,7 +83,7 @@ function Content() {
       return;
     }
     load();
-    const iv = setInterval(load, 4000);
+    const iv = setInterval(load, 2500);
     return () => clearInterval(iv);
   }, [id]);
 
@@ -190,6 +190,37 @@ function Content() {
                   ? "Pague o PIX e envie o comprovante"
                   : "Aguardando confirmação"}
         </h1>
+
+        {isConfirmed && (
+          <div className="rounded-xl border-2 border-green-500/50 bg-green-500/15 p-4 text-left space-y-2 animate-in">
+            <p className="text-green-300 font-semibold text-base">
+              Seu horário está agendado
+            </p>
+            <p className="text-sm text-[var(--muted-fg)]">
+              A barbearia confirmou seu atendimento. Guarde data e horário e
+              compareça no horário marcado. Qualquer imprevisto, fale pelo WhatsApp
+              do salão.
+            </p>
+            {data && (
+              <p className="text-sm text-green-200/90 font-medium">
+                {data.service.name} · {formatDateBR(data.date)} às {data.time}
+              </p>
+            )}
+          </div>
+        )}
+
+        {isPending && !isPix && (
+          <p className="text-sm text-amber-200/90">
+            Deixe esta página aberta. Assim que a barbearia confirmar, a tela
+            fica verde automaticamente.
+          </p>
+        )}
+        {isPending && isPix && (
+          <p className="text-xs text-[var(--muted-fg)]">
+            Depois do pagamento, a barbearia ainda precisa confirmar. Se você
+            permanecer nesta página, verá a confirmação em verde na hora.
+          </p>
+        )}
 
         {error && <p className="text-sm text-red-400">{error}</p>}
 

@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { Scissors, Menu, X } from "lucide-react";
+import { Scissors, Menu, X, CalendarClock } from "lucide-react";
 import { useState } from "react";
 
 export function Header({
@@ -36,12 +36,15 @@ export function Header({
           <a href="#contato">Contato</a>
         </nav>
 
-        <div className="flex items-center gap-2 md:hidden">
+        <div className="flex items-center gap-1.5 md:hidden">
           <Link
-            href="/agendar"
-            className="btn btn-primary !min-h-10 !px-3 !py-2 text-sm"
+            href="/meus-agendamentos"
+            className="flex h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-2.5 text-sm"
+            style={{ color: "var(--header-fg)" }}
+            aria-label="Meus horários"
           >
-            Agendar
+            <CalendarClock size={18} />
+            <span className="max-[380px]:hidden">Meus horários</span>
           </Link>
           <button
             type="button"

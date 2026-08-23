@@ -1,6 +1,5 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { MobileCtaBar } from "@/components/MobileCtaBar";
 import { Scissors, MapPin, Clock, Phone, Instagram } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 
@@ -78,7 +77,7 @@ export default async function HomePage() {
 
 
   return (
-    <div className="has-mobile-cta">
+    <div >
       <Header name={name} showProducts={est?.showProducts !== false} />
 
       {error && (
@@ -280,7 +279,6 @@ export default async function HomePage() {
         phone={est?.phone || ""}
         instagram={est?.instagram || ""}
       />
-      <MobileCtaBar whatsapp={whatsapp} />
     </div>
   );
 }
