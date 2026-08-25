@@ -174,7 +174,7 @@ export async function POST(req: NextRequest) {
         ? `PIX R$ ${amountDue.toFixed(2)}`
         : "Pagar na hora";
     void sendTelegramAlert(
-      `📅 NOVO AGENDAMENTO\n\n👤 ${apt.clientName}\n📞 ${apt.clientPhone}\n✂️ ${apt.service.name}\n📆 ${dateStr} às ${timeStr}\n💰 ${payLabel}\n\nConfirme no painel.`,
+      `📅 NOVO AGENDAMENTO\n\n👤 ${apt.clientName}\n📞 ${apt.clientPhone}\n✂️ ${apt.service.name}\n📆 ${dateStr} às ${timeStr}\n💰 ${payLabel}\n\nAbra o painel para confirmar.`,
       { path: "/p-x7k9qm2/agendamentos", buttonLabel: "Abrir agendamentos" }
     );
 

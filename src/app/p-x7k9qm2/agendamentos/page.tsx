@@ -93,7 +93,7 @@ function playAlertSound() {
 export default function AgendamentosPage() {
   const [items, setItems] = useState<Apt[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<"all" | "today" | "pending" | "upcoming">("pending");
+  const [filter, setFilter] = useState<"all" | "pending" | "today" | "upcoming">("today");
   const [soundOn, setSoundOn] = useState(false);
   const [newFlash, setNewFlash] = useState(false);
   const knownPending = useRef<Set<string>>(new Set());
@@ -323,61 +323,79 @@ export default function AgendamentosPage() {
         {soundOn && " · Alertas ativos (Chrome + som). Pode minimizar a aba; não feche o Chrome."}
       </p>
 
-      {agendaHoje.length > 0 && (
-        <div className="mb-5 rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
-          <div className="px-3 py-2.5 border-b border-[var(--border)] bg-[var(--muted)]/40">
-            <p className="text-sm font-semibold text-[var(--primary)]">
-              Agenda de hoje · {agendaHoje.length}{" "}
-              {agendaHoje.length === 1 ? "horário" : "horários"}
-            </p>
-            <p className="text-xs text-[var(--muted-fg)]">
-              Veja de relance a que horas você atende
-            </p>
-          </div>
+      {/* Agenda visual do dia */}
+      <div className="mb-5 rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden shadow-sm">
+        <div className="px-4 py-3 border-b border-[var(--border)] bg-[var(--muted)]/50">
+          <p className="text-xs uppercase tracking-wide text-[var(--muted-fg)]">
+            Agenda de hoje
+          </p>
+          <p className="text-lg font-bold text-[var(--fg)] mt-0.5">
+            {agendaHoje.length === 0
+              ? "Sem horários ativos"
+              : agendaHoje.length === 1
+                ? `1 horário · próximo às ${agendaHoje[0].time}`
+                : `${agendaHoje.length} horários · das ${agendaHoje[0].time} às ${agendaHoje[agendaHoje.length - 1].time}`}
+          </p>
+        </div>
+        {agendaHoje.length > 0 ? (
           <ul className="divide-y divide-[var(--border)]">
             {agendaHoje.map((a) => (
               <li
                 key={a.id}
-                className="flex items-stretch gap-0 min-h-[3.25rem]"
+                className={`flex items-stretch min-h-[4.5rem] ${
+                  a.status === "confirmed"
+                    ? "bg-green-500/[0.07]"
+                    : "bg-transparent"
+                }`}
               >
                 <div
-                  className={`w-20 shrink-0 flex items-center justify-center font-bold text-base tabular-nums ${
+                  className={`w-[5.75rem] shrink-0 flex flex-col items-center justify-center border-r border-[var(--border)] ${
                     a.status === "confirmed"
                       ? "bg-green-500/20 text-green-300"
-                      : "bg-amber-500/15 text-amber-300"
+                      : "bg-amber-500/15 text-amber-200"
                   }`}
                 >
-                  {a.time}
+                  <span className="text-[11px] font-medium opacity-70">hoje</span>
+                  <span className="text-2xl font-bold tabular-nums leading-none tracking-tight">
+                    {a.time}
+                  </span>
+                  <span className="text-[10px] mt-1 opacity-80">
+                    {a.service.duration ? `${a.service.duration} min` : ""}
+                  </span>
                 </div>
-                <div className="flex-1 px-3 py-2 min-w-0 flex flex-col justify-center">
-                  <p className="font-medium text-sm truncate">{a.clientName}</p>
-                  <p className="text-xs text-[var(--muted-fg)] truncate">
+                <div className="flex-1 px-3 py-2.5 min-w-0 flex flex-col justify-center gap-0.5">
+                  <p className="font-semibold text-[15px] truncate">{a.clientName}</p>
+                  <p className="text-sm text-[var(--muted-fg)] truncate">
                     {a.service.name}
-                    {a.service.duration ? ` · ${a.service.duration} min` : ""}
                   </p>
+                  {a.clientPhone && (
+                    <p className="text-xs text-[var(--muted-fg)] truncate">
+                      {a.clientPhone}
+                    </p>
+                  )}
                 </div>
                 <div className="pr-3 flex items-center">
                   <span
-                    className={`text-[10px] uppercase tracking-wide font-semibold px-2 py-0.5 rounded-full border ${
+                    className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${
                       a.status === "confirmed"
-                        ? "border-green-500/40 text-green-300"
-                        : "border-amber-500/40 text-amber-300"
+                        ? "bg-green-500/25 text-green-300"
+                        : "bg-amber-500/25 text-amber-200"
                     }`}
                   >
-                    {a.status === "confirmed" ? "OK" : "Pend."}
+                    {a.status === "confirmed" ? "Confirmado" : "Pendente"}
                   </span>
                 </div>
               </li>
             ))}
           </ul>
-        </div>
-      )}
+        ) : (
+          <p className="px-4 py-6 text-sm text-[var(--muted-fg)] text-center">
+            Sem atendimentos ativos hoje. Use o filtro ou cadastre em Novo.
+          </p>
+        )}
+      </div>
 
-      {agendaHoje.length === 0 && filter === "today" && (
-        <p className="text-sm text-[var(--muted-fg)] mb-4">
-          Nenhum atendimento ativo para hoje.
-        </p>
-      )}
+
 
 
       <div className="flex flex-wrap gap-2 mb-6">
@@ -416,7 +434,13 @@ export default function AgendamentosPage() {
             return (
               <div
                 key={a.id}
-                className={`card ${a.status === "pending" ? "ring-1 ring-amber-500/30" : ""}`}
+                className={`card ${
+                  a.status === "pending"
+                    ? "ring-1 ring-amber-500/35"
+                    : a.status === "confirmed"
+                      ? "ring-1 ring-green-500/25 bg-green-500/[0.04]"
+                      : ""
+                }`}
               >
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
@@ -439,8 +463,21 @@ export default function AgendamentosPage() {
                     >
                       {a.clientPhone}
                     </a>
-                    <p className="text-sm mt-1">
-                      {a.service.name} · {formatDateBR(a.date)} às {a.time}
+                    <p className="text-base font-semibold mt-1.5 leading-snug">
+                      <span
+                        className={
+                          a.date === today
+                            ? "text-[var(--primary)]"
+                            : "text-[var(--fg)]"
+                        }
+                      >
+                        {a.date === today ? "Hoje" : formatDateBR(a.date)}
+                      </span>
+                      <span className="text-[var(--muted-fg)] font-normal"> às </span>
+                      <span className="tabular-nums text-[var(--primary)]">{a.time}</span>
+                    </p>
+                    <p className="text-sm text-[var(--muted-fg)]">
+                      {a.service.name}
                       {a.service.duration ? ` · ${a.service.duration} min` : ""}
                     </p>
                     <p className="text-sm text-[var(--primary)]">

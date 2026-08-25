@@ -38,6 +38,7 @@ export default function AgendarPage() {
   const [chargeMode, setChargeMode] = useState("full");
   const [chargePercent, setChargePercent] = useState(50);
   const [pixAmount, setPixAmount] = useState<"half" | "full">("half");
+  const [readNotice, setReadNotice] = useState(false);
 
   useEffect(() => {
     fetch("/api/admin/services")
@@ -93,6 +94,10 @@ export default function AgendarPage() {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+    if (!readNotice) {
+      setError("Marque que leu o aviso para confirmar.");
+      return;
+    }
     setSaving(true);
     try {
       const res = await fetch("/api/appointments", {
@@ -375,14 +380,47 @@ export default function AgendarPage() {
             </div>
           )}
 
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/50 p-3 space-y-3">
+            <p className="text-sm font-semibold text-[var(--fg)]">Antes de confirmar</p>
+            <ul className="text-xs text-[var(--muted-fg)] space-y-1.5 list-disc pl-4">
+              <li>O horário só fica garantido depois que a barbearia confirmar.</li>
+              <li>
+                Se pagar no PIX, envie o comprovante na próxima tela. Se fechar a
+                aba, use <strong className="text-[var(--fg)]">Meus horários</strong>{" "}
+                (ícone no topo) com o mesmo WhatsApp.
+              </li>
+              <li>Compareça no horário marcado ou avise com antecedência.</li>
+            </ul>
+            <label className="flex items-start gap-3 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                className="mt-1 h-4 w-4 shrink-0 accent-[var(--primary)]"
+                checked={readNotice}
+                onChange={(e) => setReadNotice(e.target.checked)}
+              />
+              <span>
+                Li e entendi o aviso. Quero confirmar este agendamento.
+              </span>
+            </label>
+          </div>
+
           <div className="sticky bottom-3 z-10 pt-2 sm:static">
             <button
               type="submit"
               className="btn btn-primary w-full shadow-lg shadow-black/30"
-              disabled={saving || !time || !serviceId}
+              disabled={saving || !time || !serviceId || !readNotice}
             >
-              {saving ? <Loader2 className="animate-spin" size={18} /> : "Confirmar agendamento"}
+              {saving ? (
+                <Loader2 className="animate-spin" size={18} />
+              ) : (
+                "Confirmar agendamento"
+              )}
             </button>
+            {!readNotice && (
+              <p className="text-xs text-center text-[var(--muted-fg)] mt-2">
+                Marque o aviso acima para liberar a confirmação.
+              </p>
+            )}
           </div>
         </form>
       </div>

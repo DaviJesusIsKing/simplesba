@@ -126,6 +126,9 @@ export default function MeusAgendamentosPage() {
           <ArrowLeft size={16} /> Voltar
         </Link>
 
+        <p className="text-xs font-medium text-[var(--primary)] mb-1 uppercase tracking-wide">
+          Área do cliente
+        </p>
         <h1 className="text-2xl font-bold mb-2 flex items-center gap-2">
           <Calendar className="text-[var(--primary)]" size={24} />
           Meus agendamentos

@@ -2,11 +2,12 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import {
   Calendar,
-  Package,
   FileImage,
   Settings,
   ExternalLink,
   CalendarDays,
+  UserPlus,
+  BadgeCheck,
 } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -17,18 +18,17 @@ function todayISO() {
 }
 
 export default async function AdminDashboard() {
-  let products = 0;
   let appointments = 0;
   let pending = 0;
-  let receipts = 0;
+  let receiptsPending = 0;
+  let receiptsPaidToday = 0;
   let todayJobs = 0;
   let estName = "—";
 
   const today = todayISO();
 
   try {
-    const [p, a, pend, rec, todayCount, est] = await Promise.all([
-      prisma.product.count(),
+    const [a, pend, rec, paidToday, todayCount, est] = await Promise.all([
       prisma.appointment.count(),
       prisma.appointment.count({ where: { status: "pending" } }),
       prisma.appointment.count({
@@ -41,15 +41,21 @@ export default async function AdminDashboard() {
       prisma.appointment.count({
         where: {
           date: today,
-          status: { in: ["pending", "confirmed", "done"] },
+          paymentStatus: "paid",
+        },
+      }),
+      prisma.appointment.count({
+        where: {
+          date: today,
+          status: { in: ["pending", "confirmed"] },
         },
       }),
       prisma.establishment.findFirst(),
     ]);
-    products = p;
     appointments = a;
     pending = pend;
-    receipts = rec;
+    receiptsPending = rec;
+    receiptsPaidToday = paidToday;
     todayJobs = todayCount;
     estName = est?.name || "—";
   } catch (e) {
@@ -59,33 +65,39 @@ export default async function AdminDashboard() {
   const cards = [
     {
       href: "/p-x7k9qm2/agendamentos",
-      label: "Agendamentos",
-      value: String(appointments),
-      sub: `${pending} pendente(s)`,
-      icon: Calendar,
-    },
-    {
-      href: "/p-x7k9qm2/agendamentos",
       label: "Hoje",
       value: String(todayJobs),
-      sub: todayJobs === 1 ? "atendimento hoje" : "atendimentos hoje",
+      sub:
+        todayJobs === 0
+          ? "nenhum atendimento"
+          : todayJobs === 1
+            ? "cliente hoje"
+            : "clientes hoje",
       icon: CalendarDays,
       highlight: todayJobs > 0,
     },
     {
-      href: "/p-x7k9qm2/comprovantes",
-      label: "Comprovantes",
-      value: String(receipts),
-      sub: "para revisar",
-      icon: FileImage,
-      highlight: receipts > 0,
+      href: "/p-x7k9qm2/agendamentos",
+      label: "Atendimentos totais",
+      value: String(appointments),
+      sub: `${pending} pendente(s) no sistema`,
+      icon: Calendar,
     },
     {
-      href: "/p-x7k9qm2/produtos",
-      label: "Produtos",
-      value: String(products),
-      sub: "cadastrados",
-      icon: Package,
+      href: "/p-x7k9qm2/comprovantes",
+      label: "Para revisar",
+      value: String(receiptsPending),
+      sub: "comprovantes aguardando",
+      icon: FileImage,
+      highlight: receiptsPending > 0,
+    },
+    {
+      href: "/p-x7k9qm2/comprovantes",
+      label: "PIX aprovados hoje",
+      value: String(receiptsPaidToday),
+      sub: "pagamentos confirmados no dia",
+      icon: BadgeCheck,
+      highlight: receiptsPaidToday > 0,
     },
   ];
 
@@ -103,15 +115,17 @@ export default async function AdminDashboard() {
             <Link
               key={c.label}
               href={c.href}
-              className={`card !p-4 sm:!p-5 flex flex-col min-h-[7.5rem] sm:min-h-[8.5rem] active:scale-[0.98] transition ${
-                c.highlight ? "ring-1 ring-[var(--primary)]/50" : ""
+              className={`card !p-4 sm:!p-5 flex flex-col min-h-[8rem] sm:min-h-[9rem] active:scale-[0.98] transition ${
+                c.highlight ? "ring-1 ring-[var(--primary)]/40" : ""
               }`}
             >
               <div className="flex items-center justify-between gap-2 mb-2">
-                <span className="text-sm text-[var(--muted-fg)]">{c.label}</span>
-                <Icon size={18} className="text-[var(--primary)] shrink-0" />
+                <span className="text-sm text-[var(--muted-fg)] leading-tight">
+                  {c.label}
+                </span>
+                <Icon size={20} className="text-[var(--primary)] shrink-0" />
               </div>
-              <p className="text-3xl sm:text-4xl font-bold text-[var(--primary)] leading-none">
+              <p className="text-4xl font-bold text-[var(--primary)] leading-none">
                 {c.value}
               </p>
               <p className="text-xs text-[var(--muted-fg)] mt-auto pt-3">{c.sub}</p>
@@ -123,18 +137,24 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-1 gap-3">
         <Link
           href="/p-x7k9qm2/agendamentos"
-          className="btn btn-primary w-full !min-h-12"
+          className="btn btn-primary w-full !min-h-12 text-base"
         >
           <Calendar size={18} /> Meus agendamentos
         </Link>
         <div className="grid grid-cols-2 gap-3">
-          <Link href="/p-x7k9qm2/configuracoes" className="btn btn-secondary w-full">
-            <Settings size={16} /> Configurações
+          <Link
+            href="/p-x7k9qm2/novo-agendamento"
+            className="btn btn-secondary w-full"
+          >
+            <UserPlus size={16} /> Novo
           </Link>
-          <Link href="/" className="btn btn-secondary w-full">
-            <ExternalLink size={16} /> Ver site
+          <Link href="/p-x7k9qm2/configuracoes" className="btn btn-secondary w-full">
+            <Settings size={16} /> Config
           </Link>
         </div>
+        <Link href="/" className="btn btn-secondary w-full">
+          <ExternalLink size={16} /> Ver site
+        </Link>
       </div>
     </div>
   );

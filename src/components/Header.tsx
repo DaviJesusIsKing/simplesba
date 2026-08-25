@@ -36,19 +36,23 @@ export function Header({
           <a href="#contato">Contato</a>
         </nav>
 
-        <div className="flex items-center gap-1.5 md:hidden">
+        <div className="flex items-center gap-2 md:hidden">
           <Link
             href="/meus-agendamentos"
-            className="flex h-11 items-center gap-1.5 rounded-xl border border-[var(--border)] px-2.5 text-sm"
-            style={{ color: "var(--header-fg)" }}
+            className="flex h-11 max-w-[9.5rem] items-center gap-1.5 rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)]/15 px-2.5 text-sm font-semibold text-[var(--primary)]"
             aria-label="Meus horários"
           >
-            <CalendarClock size={18} />
-            <span className="max-[380px]:hidden">Meus horários</span>
+            <CalendarClock size={18} className="shrink-0" />
+            <span className="leading-tight text-left">
+              Meus
+              <span className="block text-[11px] font-medium opacity-90">
+                horários
+              </span>
+            </span>
           </Link>
           <button
             type="button"
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--border)]"
             onClick={() => setOpen(!open)}
             aria-label={open ? "Fechar menu" : "Abrir menu"}
             style={{ color: "var(--header-fg)" }}
@@ -65,7 +69,7 @@ export function Header({
           </a>
           <a
             href="/meus-agendamentos"
-            className={linkClass}
+            className={`${linkClass} border border-[var(--primary)]/40 bg-[var(--primary)]/10 text-[var(--primary)] font-medium`}
             onClick={() => setOpen(false)}
           >
             Meus horários

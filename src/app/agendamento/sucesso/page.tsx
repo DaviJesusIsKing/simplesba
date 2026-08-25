@@ -165,6 +165,7 @@ function Content() {
   const isExpired = data?.status === "expired";
   const isCancelled = data?.status === "cancelled";
   const isPix = data?.paymentMethod === "pix";
+  const isPaid = data?.paymentStatus === "paid";
   const needReceipt =
     isPix &&
     isPending &&
@@ -191,8 +192,21 @@ function Content() {
                   : "Aguardando confirmação"}
         </h1>
 
-        {isConfirmed && (
-          <div className="rounded-xl border-2 border-green-500/50 bg-green-500/15 p-4 text-left space-y-2 animate-in">
+        {isCancelled && (
+          <div className="rounded-xl border-2 border-red-500/50 bg-red-500/15 p-4 text-left space-y-2">
+            <p className="text-red-300 font-semibold text-base">
+              Este horário foi cancelado
+            </p>
+            <p className="text-sm text-[var(--muted-fg)]">
+              A barbearia cancelou seu agendamento. Se você já pagou um sinal no PIX,
+              fale pelo WhatsApp do salão sobre o reembolso. Você pode marcar outro
+              horário quando quiser.
+            </p>
+          </div>
+        )}
+
+        {isConfirmed && !isCancelled && (
+          <div className="rounded-xl border-2 border-green-500/50 bg-green-500/15 p-4 text-left space-y-2">
             <p className="text-green-300 font-semibold text-base">
               Seu horário está agendado
             </p>
