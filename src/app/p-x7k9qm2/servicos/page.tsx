@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { ImagePicker } from "@/components/ImagePicker";
 
 type Service = {
   id: string;
@@ -8,10 +9,11 @@ type Service = {
   description: string;
   price: number;
   duration: number;
+  imageData?: string;
   active: boolean;
 };
 
-const empty = { name: "", description: "", price: "", duration: "" };
+const empty = { name: "", description: "", price: "", duration: "", imageData: "" };
 
 export default function ServicosPage() {
   const [items, setItems] = useState<Service[]>([]);
@@ -42,6 +44,7 @@ export default function ServicosPage() {
       description: form.description,
       price: parseFloat(form.price),
       duration: parseInt(form.duration, 10),
+      imageData: form.imageData || "",
     };
     const res = await fetch(
       editId ? `/api/admin/services?id=${editId}` : "/api/admin/services",
@@ -75,6 +78,7 @@ export default function ServicosPage() {
       description: s.description,
       price: String(s.price),
       duration: String(s.duration),
+      imageData: s.imageData || "",
     });
   }
 
@@ -99,6 +103,12 @@ export default function ServicosPage() {
             <input className="input" type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
           </div>
           <div>
+        <ImagePicker
+          label="Foto do corte / serviço"
+          value={form.imageData}
+          onChange={(imageData) => setForm({ ...form, imageData })}
+          hint="Aparece no site, no card do serviço. JPG/PNG até ~800 KB."
+        />
             <label className="label">Duração (min)</label>
             <input className="input" type="number" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} required />
           </div>

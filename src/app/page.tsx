@@ -11,6 +11,7 @@ type Service = {
   description: string;
   price: number;
   duration: number;
+  imageData?: string | null;
 };
 
 type Product = {
@@ -19,6 +20,7 @@ type Product = {
   description: string;
   price: number;
   stock: number;
+  imageData?: string | null;
 };
 
 type Est = {
@@ -34,6 +36,7 @@ type Est = {
   bgColor?: string;
   cardColor?: string;
   showProducts?: boolean;
+  bannerImage?: string | null;
 } | null;
 
 async function loadData(): Promise<{
@@ -89,7 +92,13 @@ export default async function HomePage() {
       )}
 
       <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-[color-mix(in_srgb,var(--primary)_10%,transparent)] to-transparent" />
+        {est?.bannerImage ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center"
+            style={{ backgroundImage: `url(${est.bannerImage})` }}
+          />
+        ) : null}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-[color-mix(in_srgb,var(--bg)_55%,transparent)] to-[var(--bg)]" />
         <div className="relative mx-auto max-w-6xl px-4 py-12 sm:py-20 text-center">
           <p className="mb-3 text-sm font-medium tracking-wide text-primary">
             ESTILO & QUALIDADE
@@ -124,7 +133,19 @@ export default async function HomePage() {
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
-            <div key={s.id} className="card">
+            <div key={s.id} className="card overflow-hidden !p-0">
+              {s.imageData ? (
+                <img
+                  src={s.imageData}
+                  alt={s.name}
+                  className="h-40 w-full object-cover"
+                />
+              ) : (
+                <div className="h-28 w-full bg-[var(--muted)] flex items-center justify-center text-[var(--muted-fg)] text-sm">
+                  Sem foto
+                </div>
+              )}
+              <div className="p-4">
               <h3 className="text-lg font-semibold">{s.name}</h3>
               <p className="mt-1 mb-3 text-sm text-muted">
                 {s.description}
@@ -141,6 +162,7 @@ export default async function HomePage() {
               >
                 Agendar
               </a>
+              </div>
             </div>
           ))}
           {services.length === 0 && (
@@ -154,7 +176,15 @@ export default async function HomePage() {
         <h2 className="mb-6 text-2xl font-bold">Produtos</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {products.map((p) => (
-            <div key={p.id} className="card">
+            <div key={p.id} className="card overflow-hidden !p-0">
+              {p.imageData ? (
+                <img
+                  src={p.imageData}
+                  alt={p.name}
+                  className="h-32 w-full object-cover"
+                />
+              ) : null}
+              <div className="p-4">
               <h3 className="font-semibold">{p.name}</h3>
               <p className="mt-1 mb-3 text-sm text-muted">
                 {p.description}
@@ -175,6 +205,7 @@ export default async function HomePage() {
               >
                 Comprar no WhatsApp
               </a>
+              </div>
             </div>
           ))}
           {products.length === 0 && (

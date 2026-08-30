@@ -54,6 +54,7 @@ model Establishment {
   telegramEnabled Boolean  @default(false)
   telegramBotToken String  @default("")
   telegramChatId  String   @default("")
+  bannerImage     String   @default("")
   updatedAt       DateTime @updatedAt
   services        Service[]
   products        Product[]
@@ -66,6 +67,7 @@ model Service {
   description     String
   price           Float
   duration        Int
+  imageData       String        @default("")
   active          Boolean       @default(true)
   establishmentId String
   establishment   Establishment @relation(fields: [establishmentId], references: [id])
@@ -78,6 +80,7 @@ model Product {
   description     String
   price           Float
   stock           Int           @default(0)
+  imageData       String        @default("")
   active          Boolean       @default(true)
   establishmentId String
   establishment   Establishment @relation(fields: [establishmentId], references: [id])

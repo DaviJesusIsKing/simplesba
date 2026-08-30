@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Loader2, Plus, Pencil, Trash2 } from "lucide-react";
+import { ImagePicker } from "@/components/ImagePicker";
 
 type Product = {
   id: string;
@@ -8,10 +9,11 @@ type Product = {
   description: string;
   price: number;
   stock: number;
+  imageData?: string;
   active: boolean;
 };
 
-const empty = { name: "", description: "", price: "", stock: "" };
+const empty = { name: "", description: "", price: "", stock: "", imageData: "" };
 
 export default function ProdutosPage() {
   const [items, setItems] = useState<Product[]>([]);
@@ -41,6 +43,7 @@ export default function ProdutosPage() {
       description: form.description,
       price: parseFloat(form.price),
       stock: parseInt(form.stock, 10),
+      imageData: form.imageData || "",
     };
     const res = await fetch(
       editId ? `/api/admin/products?id=${editId}` : "/api/admin/products",
@@ -74,6 +77,7 @@ export default function ProdutosPage() {
       description: p.description,
       price: String(p.price),
       stock: String(p.stock),
+      imageData: p.imageData || "",
     });
   }
 
@@ -101,6 +105,11 @@ export default function ProdutosPage() {
             <input className="input" type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
           </div>
         </div>
+        <ImagePicker
+          label="Foto do produto"
+          value={form.imageData}
+          onChange={(imageData) => setForm({ ...form, imageData })}
+        />
         <div className="flex gap-2">
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? <Loader2 className="animate-spin" size={16} /> : editId ? "Salvar" : <><Plus size={16} /> Adicionar</>}
@@ -119,7 +128,10 @@ export default function ProdutosPage() {
         <div className="space-y-2">
           {items.map((p) => (
             <div key={p.id} className="card flex items-center justify-between gap-3">
-              <div>
+              {p.imageData ? (
+                <img src={p.imageData} alt="" className="h-14 w-14 rounded-lg object-cover shrink-0" />
+              ) : null}
+              <div className="min-w-0 flex-1">
                 <p className="font-medium">{p.name}</p>
                 <p className="text-sm text-[var(--muted-fg)]">
                   R$ {p.price.toFixed(2)} · Estoque: {p.stock}

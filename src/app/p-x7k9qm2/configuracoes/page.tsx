@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { ImagePicker } from "@/components/ImagePicker";
 
 const DAYS = [
   { value: "0", label: "Domingo" },
@@ -37,6 +38,7 @@ const defaults = {
   hoursByDay: "{}",
   pixQrData: "",
   showProducts: true,
+  bannerImage: "",
   telegramEnabled: false,
   telegramBotToken: "",
   telegramChatId: "",
@@ -146,6 +148,7 @@ export default function ConfigPage() {
             hoursByDay: d.hoursByDay || "{}",
             pixQrData: d.pixQrData || "",
             showProducts: d.showProducts !== false,
+            bannerImage: d.bannerImage || "",
             telegramEnabled: !!d.telegramEnabled,
             telegramBotToken: d.telegramBotToken || "",
             telegramChatId: d.telegramChatId || "",
@@ -565,6 +568,12 @@ export default function ConfigPage() {
           Enviar mensagem de teste
         </button>
 
+        <ImagePicker
+          label="Foto de capa do site (banner)"
+          value={form.bannerImage}
+          onChange={(bannerImage) => setForm((f) => ({ ...f, bannerImage }))}
+          hint="Foto da fachada ou de um corte. Aparece no topo da home."
+        />
         <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
           Visual do site — presets
         </p>

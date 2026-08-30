@@ -26,6 +26,7 @@ export async function POST(req: NextRequest) {
       description: body.description,
       price: body.price,
       duration: body.duration,
+      imageData: body.imageData ?? "",
       establishmentId: est.id,
     },
   });
@@ -44,6 +45,7 @@ export async function PUT(req: NextRequest) {
       description: body.description,
       price: body.price,
       duration: body.duration,
+      imageData: body.imageData ?? "",
     },
   });
   return NextResponse.json(item);
