@@ -174,23 +174,44 @@ function Content() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-6 sm:py-10 pb-8 bg-[var(--bg)] text-[var(--fg)]">
       <div className="card max-w-md w-full text-center space-y-4">
-        {isConfirmed && <CheckCircle className="mx-auto text-green-400" size={48} />}
-        {isPending && <Clock className="mx-auto text-amber-400" size={48} />}
-        {(isExpired || isCancelled) && (
-          <XCircle className="mx-auto text-red-400" size={48} />
-        )}
-
-        <h1 className="text-xl font-bold">
-          {isConfirmed
-            ? "Horário confirmado!"
-            : isExpired
-              ? "Reserva expirada"
-              : isCancelled
-                ? "Horário cancelado"
-                : isPix
-                  ? "Pague o PIX e envie o comprovante"
-                  : "Aguardando confirmação"}
-        </h1>
+        <div
+          className={`rounded-2xl px-4 py-4 ${
+            isConfirmed
+              ? "bg-green-500/15 border border-green-500/40"
+              : isCancelled || isExpired
+                ? "bg-red-500/15 border border-red-500/40"
+                : "bg-amber-500/15 border border-amber-500/40"
+          }`}
+        >
+          {isConfirmed && <CheckCircle className="mx-auto text-green-400" size={40} />}
+          {isPending && <Clock className="mx-auto text-amber-300" size={40} />}
+          {(isExpired || isCancelled) && (
+            <XCircle className="mx-auto text-red-400" size={40} />
+          )}
+          <p className="mt-2 text-xs uppercase tracking-wide text-[var(--muted-fg)]">
+            Status
+          </p>
+          <h1 className="text-xl font-bold leading-tight">
+            {isConfirmed
+              ? "Confirmado"
+              : isExpired
+                ? "Expirado"
+                : isCancelled
+                  ? "Cancelado"
+                  : "Pendente"}
+          </h1>
+          <p className="text-sm text-[var(--muted-fg)] mt-1">
+            {isConfirmed
+              ? "A barbearia aceitou seu horário."
+              : isExpired
+                ? "A reserva passou do tempo."
+                : isCancelled
+                  ? "A barbearia cancelou este horário."
+                  : isPix
+                    ? "Pague o PIX e envie o comprovante. Depois aguarde a confirmação."
+                    : "Aguardando a barbearia confirmar."}
+          </p>
+        </div>
 
         {isCancelled && (
           <div className="rounded-xl border-2 border-red-500/50 bg-red-500/15 p-4 text-left space-y-2">
@@ -308,7 +329,7 @@ function Content() {
 
             {isPix && needReceipt && pix.pixKey && (
               <div className="text-left rounded-lg border border-[var(--primary)]/40 bg-[var(--muted)] p-4 space-y-3">
-                <p className="text-sm font-semibold">Pagamento PIX — passo a passo</p>
+                <p className="text-sm font-semibold">Pagar e enviar comprovante</p>
                 <ol className="text-xs text-[var(--muted-fg)] list-decimal pl-4 space-y-1">
                   <li>Copie a chave ou leia o QR no app do banco.</li>
                   <li>Pague o valor indicado (exatamente).</li>
@@ -339,7 +360,7 @@ function Content() {
                 )}
                 <div className="rounded-xl border-2 border-dashed border-[var(--primary)] bg-[var(--primary)]/10 p-4 text-center space-y-3">
                   <p className="font-semibold text-[var(--primary)]">
-                    Enviar foto do comprovante
+                    Enviar comprovante agora
                   </p>
                   <p className="text-xs text-[var(--muted-fg)]">
                     Envie print do PIX (JPG/PNG) ou o PDF do comprovante

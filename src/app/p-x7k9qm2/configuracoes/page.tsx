@@ -202,6 +202,8 @@ export default function ConfigPage() {
     setSelectedPreset(preset.id);
   }
 
+  const [tab, setTab] = useState("salao");
+
   if (loading) return <Loader2 className="animate-spin text-[#d4a017]" />;
 
   const openSet = new Set(
@@ -214,7 +216,34 @@ export default function ConfigPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Configurações</h1>
+      <h1 className="text-2xl font-bold mb-2">Configurações</h1>
+      <p className="text-sm text-[var(--muted-fg)] mb-4">
+        Escolha uma aba. Salve no final de cada mudança.
+      </p>
+      <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
+        {(
+          [
+            ["salao", "Salão"],
+            ["horas", "Horários"],
+            ["pix", "PIX"],
+            ["avisos", "Avisos"],
+            ["visual", "Visual"],
+          ] as const
+        ).map(([id, label]) => (
+          <button
+            key={id}
+            type="button"
+            onClick={() => setTab(id)}
+            className={`shrink-0 rounded-xl px-3 py-2 text-sm font-medium border ${
+              tab === id
+                ? "border-[var(--primary)] bg-[var(--primary)] text-[var(--primary-fg)]"
+                : "border-[var(--border)] text-[var(--muted-fg)]"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       <form onSubmit={save} className="card max-w-2xl space-y-4">
         {msg && (
           <p className={`text-sm ${msg.includes("sucesso") ? "text-green-400" : "text-red-400"}`}>
@@ -222,9 +251,12 @@ export default function ConfigPage() {
           </p>
         )}
 
-        <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2">
-          Dados do estabelecimento
+        {tab === "salao" && (
+        <div className="space-y-4">
+        <p className="text-sm font-semibold text-[var(--fg)]">
+          Dados do salão
         </p>
+        <p className="text-xs text-[var(--muted-fg)] -mt-2">Nome, endereço e WhatsApp que aparecem no site.</p>
         {(
           [
             ["name", "Nome da barbearia"],
@@ -246,7 +278,12 @@ export default function ConfigPage() {
           </div>
         ))}
 
-        <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
+        </div>
+        )}
+
+        {tab === "horas" && (
+        <div className="space-y-4">
+        <p className="text-sm font-semibold text-[var(--fg)]">
           Dias e horários de atendimento
         </p>
         <p className="text-xs text-neutral-500 -mt-2">
@@ -385,7 +422,12 @@ export default function ConfigPage() {
           )}
         </div>
 
-        <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
+        </div>
+        )}
+
+        {tab === "pix" && (
+        <div className="space-y-4">
+        <p className="text-sm font-semibold text-[var(--fg)]">
           PIX e pagamentos
         </p>
         <p className="text-xs text-neutral-500 -mt-2">
@@ -511,7 +553,12 @@ export default function ConfigPage() {
           </select>
         </div>
 
-        <p className="text-sm font-semibold text-neutral-300 border-b border-[#333] pb-2 pt-2">
+        </div>
+        )}
+
+        {tab === "avisos" && (
+        <div className="space-y-4">
+        <p className="text-sm font-semibold text-[var(--fg)]">
           Alertas no Telegram
         </p>
         <p className="text-xs text-[var(--muted-fg)] -mt-2">
@@ -568,6 +615,11 @@ export default function ConfigPage() {
           Enviar mensagem de teste
         </button>
 
+        </div>
+        )}
+
+        {tab === "visual" && (
+        <div className="space-y-4">
         <ImagePicker
           label="Foto de capa do site (banner)"
           value={form.bannerImage}
@@ -656,8 +708,11 @@ export default function ConfigPage() {
           </button>
         </div>
 
-        <button type="submit" className="btn btn-primary" disabled={saving}>
-          {saving ? <Loader2 className="animate-spin" size={16} /> : "Salvar"}
+        </div>
+        )}
+
+        <button type="submit" className="btn btn-primary w-full sm:w-auto" disabled={saving}>
+          {saving ? <Loader2 className="animate-spin" size={16} /> : "Salvar esta aba"}
         </button>
       </form>
     </div>

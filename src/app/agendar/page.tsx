@@ -188,7 +188,8 @@ export default function AgendarPage() {
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-[var(--muted-fg)] hover:text-[var(--primary)] mb-6">
           <ArrowLeft size={16} /> Voltar
         </Link>
-        <h1 className="text-2xl font-bold mb-6">Agendar horário</h1>
+        <h1 className="text-2xl font-bold mb-2">Agendar</h1>
+        <p className="text-sm text-[var(--muted-fg)] mb-5">Escolha o serviço, o dia e o horário.</p>
         <form onSubmit={submit} className="card space-y-4">
           {error && (
             <p className="text-sm text-red-400 bg-red-900/30 rounded-lg px-3 py-2">{error}</p>
