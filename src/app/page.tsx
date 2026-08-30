@@ -157,10 +157,10 @@ export default async function HomePage() {
                 <span className="text-muted">{s.duration} min</span>
               </div>
               <a
-                href="/agendar"
+                href={`/agendar?servico=${s.id}`}
                 className="btn btn-primary mt-4 w-full text-sm"
               >
-                Agendar
+                Agendar este
               </a>
               </div>
             </div>

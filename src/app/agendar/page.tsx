@@ -68,6 +68,13 @@ export default function AgendarPage() {
   }, []);
 
   useEffect(() => {
+    if (!services.length) return;
+    const q = new URLSearchParams(window.location.search);
+    const id = q.get("servico") || q.get("serviceId");
+    if (id && services.some((s) => s.id === id)) setServiceId(id);
+  }, [services]);
+
+  useEffect(() => {
     if (!date) {
       setTimes([]);
       setTime("");

@@ -6,7 +6,6 @@ import {
   Settings,
   ExternalLink,
   CalendarDays,
-  UserPlus,
   BadgeCheck,
 } from "lucide-react";
 
@@ -88,7 +87,6 @@ export default async function AdminDashboard() {
       label: "Para revisar",
       value: String(receiptsPending),
       sub: "comprovantes aguardando",
-      icon: FileImage,
       highlight: receiptsPending > 0,
     },
     {
@@ -143,10 +141,10 @@ export default async function AdminDashboard() {
         </Link>
         <div className="grid grid-cols-2 gap-3">
           <Link
-            href="/p-x7k9qm2/novo-agendamento"
+            href="/p-x7k9qm2/comprovantes"
             className="btn btn-secondary w-full"
           >
-            <UserPlus size={16} /> Novo
+            <FileImage size={16} /> Comprovantes
           </Link>
           <Link href="/p-x7k9qm2/configuracoes" className="btn btn-secondary w-full">
             <Settings size={16} /> Config
