@@ -17,6 +17,7 @@ const defaults = {
   name: "",
   description: "",
   address: "",
+  mapsUrl: "",
   phone: "",
   whatsapp: "",
   instagram: "",
@@ -127,6 +128,7 @@ export default function ConfigPage() {
             name: d.name || "",
             description: d.description || "",
             address: d.address || "",
+            mapsUrl: d.mapsUrl || "",
             phone: d.phone || "",
             whatsapp: d.whatsapp || "",
             instagram: d.instagram || "",
@@ -256,12 +258,12 @@ export default function ConfigPage() {
         <p className="text-sm font-semibold text-[var(--fg)]">
           Dados do salão
         </p>
-        <p className="text-xs text-[var(--muted-fg)] -mt-2">Nome, endereço e WhatsApp que aparecem no site.</p>
+        <p className="text-xs text-[var(--muted-fg)] -mt-2">Nome, WhatsApp e link do Google Maps que aparecem no site.</p>
         {(
           [
             ["name", "Nome da barbearia"],
             ["description", "Descrição"],
-            ["address", "Endereço"],
+            ["mapsUrl", "Link do Google Maps"],
             ["phone", "Telefone"],
             ["whatsapp", "WhatsApp (ex: 5511999998888)"],
             ["instagram", "Instagram (sem @)"],
@@ -273,8 +275,18 @@ export default function ConfigPage() {
               className="input"
               value={form[key]}
               onChange={(e) => set(key, e.target.value)}
-              required={key !== "instagram"}
+              required={key !== "instagram" && key !== "mapsUrl"}
+              placeholder={
+                key === "mapsUrl"
+                  ? "https://maps.google.com/... ou https://maps.app.goo.gl/..."
+                  : ""
+              }
             />
+            {key === "mapsUrl" && (
+              <p className="text-xs text-[var(--muted-fg)] mt-1">
+                No Google Maps: compartilhe o local → copiar link → cola aqui.
+              </p>
+            )}
           </div>
         ))}
 

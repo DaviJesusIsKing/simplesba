@@ -20,6 +20,8 @@ export async function GET() {
       bannerImage: est.bannerImage || "",
       pixQrData: est.pixQrData || "",
       showProducts: est.showProducts !== false,
+      mapsUrl: est.mapsUrl || "",
+      address: est.address || "",
       openTime: est.openTime,
       closeTime: est.closeTime,
     });

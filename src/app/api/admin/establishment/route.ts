@@ -21,7 +21,8 @@ export async function PUT(req: NextRequest) {
   const data = {
     name: body.name,
     description: body.description,
-    address: body.address,
+    address: body.address ?? "",
+    mapsUrl: String(body.mapsUrl ?? "").trim(),
     phone: body.phone,
     whatsapp: body.whatsapp,
     instagram: body.instagram || "",

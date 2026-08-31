@@ -20,7 +20,8 @@ model Establishment {
   id              String   @id @default(cuid())
   name            String
   description     String
-  address         String
+  address         String   @default("")
+  mapsUrl         String   @default("")
   phone           String
   whatsapp        String
   instagram       String   @default("")

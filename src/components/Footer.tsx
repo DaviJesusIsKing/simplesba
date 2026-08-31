@@ -3,11 +3,13 @@ import { Scissors } from "lucide-react";
 export function Footer({
   name,
   address,
+  mapsUrl,
   phone,
   instagram,
 }: {
   name: string;
   address: string;
+  mapsUrl?: string;
   phone: string;
   instagram: string;
 }) {
@@ -26,7 +28,15 @@ export function Footer({
           </p>
         </div>
         <div className="text-sm space-y-1" style={{ color: "var(--muted-fg)" }}>
-          <p>{address}</p>
+          {mapsUrl ? (
+            <p>
+              <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="underline">
+                Ver no Google Maps
+              </a>
+            </p>
+          ) : (
+            address && <p>{address}</p>
+          )}
           <p>{phone}</p>
           {instagram && <p>@{instagram}</p>}
         </div>

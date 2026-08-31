@@ -1,6 +1,6 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Loader2, CheckCircle, ArrowLeft } from "lucide-react";
 
@@ -11,10 +11,12 @@ type Service = {
   duration: number;
 };
 
-export default function AgendarPage() {
+function AgendarForm() {
   const router = useRouter();
+  const params = useSearchParams();
+  const presetId = (params.get("servico") || params.get("serviceId") || "").trim();
   const [services, setServices] = useState<Service[]>([]);
-  const [serviceId, setServiceId] = useState("");
+  const [serviceId, setServiceId] = useState(presetId);
   const [date, setDate] = useState("");
   const [times, setTimes] = useState<string[]>([]);
   const [time, setTime] = useState("");
@@ -68,11 +70,21 @@ export default function AgendarPage() {
   }, []);
 
   useEffect(() => {
-    if (!services.length) return;
-    const q = new URLSearchParams(window.location.search);
-    const id = q.get("servico") || q.get("serviceId");
-    if (id && services.some((s) => s.id === id)) setServiceId(id);
-  }, [services]);
+    const fromUrl =
+      presetId ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("servico") ||
+          new URLSearchParams(window.location.search).get("serviceId") ||
+          ""
+        : "");
+    if (!fromUrl) return;
+    if (!services.length) {
+      setServiceId(fromUrl);
+      return;
+    }
+    const found = services.find((s) => s.id === fromUrl);
+    if (found) setServiceId(found.id);
+  }, [services, presetId]);
 
   useEffect(() => {
     if (!date) {
@@ -197,6 +209,12 @@ export default function AgendarPage() {
         </Link>
         <h1 className="text-2xl font-bold mb-2">Agendar</h1>
         <p className="text-sm text-[var(--muted-fg)] mb-5">Escolha o serviço, o dia e o horário.</p>
+        {serviceId && services.find((s) => s.id === serviceId) && (
+          <div className="mb-4 rounded-xl border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-3 py-2 text-sm">
+            Serviço:{" "}
+            <strong>{services.find((s) => s.id === serviceId)?.name}</strong>
+          </div>
+        )}
         <form onSubmit={submit} className="card space-y-4">
           {error && (
             <p className="text-sm text-red-400 bg-red-900/30 rounded-lg px-3 py-2">{error}</p>
@@ -433,5 +451,19 @@ export default function AgendarPage() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function AgendarPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center bg-[var(--bg)]">
+          <Loader2 className="animate-spin text-[var(--primary)]" size={28} />
+        </div>
+      }
+    >
+      <AgendarForm />
+    </Suspense>
   );
 }

@@ -27,6 +27,7 @@ type Est = {
   name: string;
   description: string;
   address: string;
+  mapsUrl?: string | null;
   phone: string;
   whatsapp: string;
   instagram: string;
@@ -270,10 +271,19 @@ export default async function HomePage() {
           <div className="card flex gap-3">
             <MapPin className="shrink-0 text-primary" size={20} />
             <div>
-              <p className="text-sm font-medium">Endereço</p>
-              <p className="text-sm text-muted">
-                {est?.address || "—"}
-              </p>
+              <p className="text-sm font-medium">Local</p>
+              {est?.mapsUrl ? (
+                <a
+                  href={est.mapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-primary underline"
+                >
+                  Abrir no Google Maps
+                </a>
+              ) : (
+                <p className="text-sm text-muted">{est?.address || "—"}</p>
+              )}
             </div>
           </div>
           <div className="card flex gap-3">
@@ -307,6 +317,7 @@ export default async function HomePage() {
       <Footer
         name={name}
         address={est?.address || ""}
+        mapsUrl={est?.mapsUrl || ""}
         phone={est?.phone || ""}
         instagram={est?.instagram || ""}
       />
