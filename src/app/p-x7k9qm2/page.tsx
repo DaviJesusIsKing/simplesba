@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import {
@@ -61,7 +62,14 @@ export default async function AdminDashboard() {
     console.error(e);
   }
 
-  const cards = [
+  const cards: {
+    href: string;
+    label: string;
+    value: string;
+    sub: string;
+    icon: ComponentType<{ size?: number; className?: string }>;
+    highlight?: boolean;
+  }[] = [
     {
       href: "/p-x7k9qm2/agendamentos",
       label: "Hoje",
@@ -87,6 +95,7 @@ export default async function AdminDashboard() {
       label: "Para revisar",
       value: String(receiptsPending),
       sub: "comprovantes aguardando",
+      icon: FileImage,
       highlight: receiptsPending > 0,
     },
     {
