@@ -9,10 +9,23 @@ async function guard() {
   return session;
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const full = req.nextUrl.searchParams.get("full") === "1";
   const est = await prisma.establishment.findFirst();
-  return NextResponse.json(est);
+  if (!est) return NextResponse.json(null);
+  if (full) return NextResponse.json(est);
+  const { bannerImage, pixQrData, ...rest } = est as typeof est & {
+    bannerImage?: string;
+    pixQrData?: string;
+  };
+  return NextResponse.json({
+    ...rest,
+    hasBanner: !!(bannerImage && bannerImage.length > 20),
+    hasQr: !!(pixQrData && pixQrData.length > 20),
+    bannerImage: "",
+    pixQrData: "",
+  });
 }
 
 export async function PUT(req: NextRequest) {

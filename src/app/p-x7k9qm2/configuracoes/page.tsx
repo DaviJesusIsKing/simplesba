@@ -120,44 +120,61 @@ export default function ConfigPage() {
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/admin/establishment")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d) {
-          setForm({
-            name: d.name || "",
-            description: d.description || "",
-            address: d.address || "",
-            mapsUrl: d.mapsUrl || "",
-            phone: d.phone || "",
-            whatsapp: d.whatsapp || "",
-            instagram: d.instagram || "",
-            openTime: d.openTime || "09:00",
-            closeTime: d.closeTime || "19:00",
-            lunchEnabled: !!d.lunchEnabled,
-            lunchStart: d.lunchStart || "12:00",
-            lunchEnd: d.lunchEnd || "13:00",
-            openDays: d.openDays || "1,2,3,4,5,6",
-            primaryColor: d.primaryColor || "#d4a017",
-            bgColor: d.bgColor || "#0f0f0f",
-            cardColor: d.cardColor || "#1a1a1a",
-            pixKey: d.pixKey || "",
-            pixName: d.pixName || "",
-            pixInstructions: d.pixInstructions || "",
-            pixChargeMode: d.pixChargeMode || "full",
-            pixChargePercent: String(d.pixChargePercent ?? 50),
-            paymentPolicy: d.paymentPolicy || "both",
-            hoursByDay: d.hoursByDay || "{}",
-            pixQrData: d.pixQrData || "",
-            showProducts: d.showProducts !== false,
-            bannerImage: d.bannerImage || "",
-            telegramEnabled: !!d.telegramEnabled,
-            telegramBotToken: d.telegramBotToken || "",
-            telegramChatId: d.telegramChatId || "",
-          });
+    let cancelled = false;
+    (async () => {
+      try {
+        const r = await fetch("/api/admin/establishment");
+        const d = await r.json();
+        if (cancelled || !d) {
+          setLoading(false);
+          return;
         }
+        setForm((prev) => ({
+          ...prev,
+          name: d.name || "",
+          description: d.description || "",
+          address: d.address || "",
+          mapsUrl: d.mapsUrl || "",
+          phone: d.phone || "",
+          whatsapp: d.whatsapp || "",
+          instagram: d.instagram || "",
+          openTime: d.openTime || "09:00",
+          closeTime: d.closeTime || "19:00",
+          lunchEnabled: !!d.lunchEnabled,
+          lunchStart: d.lunchStart || "12:00",
+          lunchEnd: d.lunchEnd || "13:00",
+          openDays: d.openDays || "1,2,3,4,5,6",
+          primaryColor: d.primaryColor || "#d4a017",
+          bgColor: d.bgColor || "#0f0f0f",
+          cardColor: d.cardColor || "#1a1a1a",
+          pixKey: d.pixKey || "",
+          pixName: d.pixName || "",
+          pixInstructions: d.pixInstructions || "",
+          pixChargeMode: d.pixChargeMode || "full",
+          pixChargePercent: String(d.pixChargePercent ?? 50),
+          paymentPolicy: d.paymentPolicy || "both",
+          hoursByDay: d.hoursByDay || "{}",
+          showProducts: d.showProducts !== false,
+          telegramEnabled: !!d.telegramEnabled,
+          telegramBotToken: d.telegramBotToken || "",
+          telegramChatId: d.telegramChatId || "",
+        }));
         setLoading(false);
-      });
+        const r2 = await fetch("/api/admin/establishment?full=1");
+        const d2 = await r2.json();
+        if (cancelled || !d2) return;
+        setForm((prev) => ({
+          ...prev,
+          pixQrData: d2.pixQrData || "",
+          bannerImage: d2.bannerImage || "",
+        }));
+      } catch {
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function save(e: React.FormEvent) {

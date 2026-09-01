@@ -17,7 +17,6 @@ export async function GET() {
       pixChargeMode: est.pixChargeMode || "full",
       pixChargePercent: est.pixChargePercent ?? 50,
       paymentPolicy: est.paymentPolicy || "both",
-      bannerImage: est.bannerImage || "",
       pixQrData: est.pixQrData || "",
       showProducts: est.showProducts !== false,
       mapsUrl: est.mapsUrl || "",
