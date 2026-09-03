@@ -100,11 +100,11 @@ export default async function HomePage() {
           />
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-[color-mix(in_srgb,var(--bg)_55%,transparent)] to-[var(--bg)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-12 sm:py-20 text-center">
-          <p className="mb-3 text-sm font-medium tracking-wide text-primary">
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20 text-center">
+          <p className="mb-3 text-xs font-semibold tracking-[0.18em] text-primary sm:text-sm">
             ESTILO & QUALIDADE
           </p>
-          <h1 className="mb-4 text-3xl font-bold leading-tight sm:text-5xl">{name}</h1>
+          <h1 className="mb-4 text-[2rem] font-bold leading-[1.15] sm:text-5xl">{name}</h1>
           <p className="mx-auto mb-8 max-w-xl text-muted">
             {est?.description ||
               "Cortes masculinos, barba e cuidados pessoais."}
@@ -129,26 +129,27 @@ export default async function HomePage() {
       </section>
 
       <section id="servicos" className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-6 flex items-center gap-2 text-2xl font-bold">
+        <h2 className="mb-2 flex items-center gap-2 text-2xl font-bold">
           <Scissors className="text-primary" size={24} /> Serviços
         </h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <p className="mb-5 text-sm text-muted">Escolha o corte e agende neste card.</p>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
             <div key={s.id} className="card overflow-hidden !p-0">
               {s.imageData ? (
                 <img
                   src={s.imageData}
                   alt={s.name}
-                  className="h-40 w-full object-cover"
+                  className="h-48 w-full object-cover sm:h-40"
                 />
               ) : (
-                <div className="h-28 w-full bg-[var(--muted)] flex items-center justify-center text-[var(--muted-fg)] text-sm">
+                <div className="h-32 w-full bg-[var(--muted)] flex items-center justify-center text-[var(--muted-fg)] text-sm sm:h-28">
                   Sem foto
                 </div>
               )}
               <div className="p-4">
-              <h3 className="text-lg font-semibold">{s.name}</h3>
-              <p className="mt-1 mb-3 text-sm text-muted">
+              <h3 className="text-xl font-semibold leading-snug">{s.name}</h3>
+              <p className="mt-1.5 mb-4 text-[15px] leading-relaxed text-muted">
                 {s.description}
               </p>
               <div className="flex items-center justify-between text-sm">
@@ -159,7 +160,7 @@ export default async function HomePage() {
               </div>
               <a
                 href={`/agendar?servico=${s.id}`}
-                className="btn btn-primary mt-4 w-full text-sm"
+                className="btn btn-primary mt-4 w-full text-base"
               >
                 Agendar este
               </a>

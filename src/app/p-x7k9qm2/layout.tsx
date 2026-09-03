@@ -38,10 +38,18 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   );
 
   useEffect(() => {
+    try {
+      const cached = sessionStorage.getItem("admin-theme");
+      if (cached) setTheme(JSON.parse(cached) as CSSProperties);
+    } catch {}
     fetch("/api/public/establishment")
       .then((r) => r.json())
       .then((d) => {
-        setTheme(adminThemeFromEst(d) as CSSProperties);
+        const next = adminThemeFromEst(d) as CSSProperties;
+        setTheme(next);
+        try {
+          sessionStorage.setItem("admin-theme", JSON.stringify(next));
+        } catch {}
       })
       .catch(() => {});
   }, [pathname]);

@@ -114,21 +114,20 @@ const PRESETS = [
 
 export default function ConfigPage() {
   const [form, setForm] = useState(defaults);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadingHint, setLoadingHint] = useState(true);
+  const [tab, setTab] = useState("salao");
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState("");
   const [selectedPreset, setSelectedPreset] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      try {
-        const r = await fetch("/api/admin/establishment");
-        const d = await r.json();
-        if (cancelled || !d) {
-          setLoading(false);
-          return;
-        }
+    setLoadingHint(true);
+    fetch("/api/admin/establishment")
+      .then((r) => r.json())
+      .then((d) => {
+        if (cancelled || !d) return;
         setForm((prev) => ({
           ...prev,
           name: d.name || "",
@@ -159,23 +158,30 @@ export default function ConfigPage() {
           telegramBotToken: d.telegramBotToken || "",
           telegramChatId: d.telegramChatId || "",
         }));
-        setLoading(false);
-        const r2 = await fetch("/api/admin/establishment?full=1");
-        const d2 = await r2.json();
-        if (cancelled || !d2) return;
-        setForm((prev) => ({
-          ...prev,
-          pixQrData: d2.pixQrData || "",
-          bannerImage: d2.bannerImage || "",
-        }));
-      } catch {
-        setLoading(false);
-      }
-    })();
+      })
+      .finally(() => {
+        if (!cancelled) setLoadingHint(false);
+      });
     return () => {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (tab !== "visual" && tab !== "pix") return;
+    if (form.bannerImage || form.pixQrData) return;
+    fetch("/api/admin/establishment?full=1")
+      .then((r) => r.json())
+      .then((d) => {
+        if (!d) return;
+        setForm((prev) => ({
+          ...prev,
+          pixQrData: prev.pixQrData || d.pixQrData || "",
+          bannerImage: prev.bannerImage || d.bannerImage || "",
+        }));
+      })
+      .catch(() => {});
+  }, [tab]);
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -221,9 +227,6 @@ export default function ConfigPage() {
     setSelectedPreset(preset.id);
   }
 
-  const [tab, setTab] = useState("salao");
-
-  if (loading) return <Loader2 className="animate-spin text-[#d4a017]" />;
 
   const openSet = new Set(
     form.openDays.split(",").map((d) => d.trim()).filter(Boolean)
@@ -238,6 +241,7 @@ export default function ConfigPage() {
       <h1 className="text-2xl font-bold mb-2">Configurações</h1>
       <p className="text-sm text-[var(--muted-fg)] mb-4">
         Escolha uma aba. Salve no final de cada mudança.
+        {loadingHint ? " Carregando dados..." : ""}
       </p>
       <div className="flex gap-2 overflow-x-auto pb-2 mb-3">
         {(

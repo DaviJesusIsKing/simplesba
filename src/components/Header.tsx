@@ -17,7 +17,7 @@ export function Header({
 
   return (
     <header className="site-header sticky top-0 z-50 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5">
         <Link
           href="/"
           className="flex min-w-0 items-center gap-2 font-semibold"
@@ -39,7 +39,7 @@ export function Header({
         <div className="flex items-center gap-2 md:hidden">
           <Link
             href="/meus-agendamentos"
-            className="flex h-11 max-w-[9.5rem] items-center gap-1.5 rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)]/15 px-2.5 text-sm font-semibold text-[var(--primary)]"
+            className="flex h-12 max-w-[9.5rem] items-center gap-1.5 rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)]/15 px-2.5 text-sm font-semibold text-[var(--primary)]"
             aria-label="Meus horários"
           >
             <CalendarClock size={18} className="shrink-0" />
@@ -52,7 +52,7 @@ export function Header({
           </Link>
           <button
             type="button"
-            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--border)]"
+            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--border)]"
             onClick={() => setOpen(!open)}
             aria-label={open ? "Fechar menu" : "Abrir menu"}
             style={{ color: "var(--header-fg)" }}
