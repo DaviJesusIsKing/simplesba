@@ -390,7 +390,7 @@ export default function AgendamentosPage() {
           </ul>
         ) : (
           <p className="px-4 py-6 text-sm text-[var(--muted-fg)] text-center">
-            Sem atendimentos ativos hoje. Use o filtro ou cadastre em Novo.
+            Hoje ainda não tem cliente na agenda.
           </p>
         )}
       </div>
@@ -398,13 +398,16 @@ export default function AgendamentosPage() {
 
 
 
+      <p className="text-sm text-[var(--muted-fg)] mb-2">
+        Ver lista:
+      </p>
       <div className="flex flex-wrap gap-2 mb-6">
         {(
           [
-            ["pending", "Pendentes"],
-            ["today", "Hoje"],
-            ["upcoming", "Próximos"],
-            ["all", "Todos"],
+            ["pending", "Esperando você confirmar"],
+            ["today", "Só hoje"],
+            ["upcoming", "Ainda vão vir"],
+            ["all", "Tudo"],
           ] as const
         ).map(([key, label]) => (
           <button
@@ -618,7 +621,7 @@ export default function AgendamentosPage() {
             );
           })}
           {filtered.length === 0 && (
-            <p className="text-[var(--muted-fg)]">Nenhum agendamento neste filtro.</p>
+            <p className="text-[var(--muted-fg)]">Nada nesta lista. Toque em “Tudo” para ver os outros.</p>
           )}
         </div>
       )}

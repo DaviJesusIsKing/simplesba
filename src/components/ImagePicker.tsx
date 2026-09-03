@@ -6,7 +6,7 @@ function compressImage(file: File): Promise<string> {
     const url = URL.createObjectURL(file);
     img.onload = () => {
       URL.revokeObjectURL(url);
-      const max = 1200;
+      const max = 1800;
       let { width, height } = img;
       if (width > max || height > max) {
         const ratio = Math.min(max / width, max / height);
@@ -22,7 +22,7 @@ function compressImage(file: File): Promise<string> {
         return;
       }
       ctx.drawImage(img, 0, 0, width, height);
-      resolve(canvas.toDataURL("image/jpeg", 0.72));
+      resolve(canvas.toDataURL("image/jpeg", 0.88));
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
@@ -36,7 +36,7 @@ export function ImagePicker({
   label,
   value,
   onChange,
-  hint = "Foto do celular. A gente reduz o tamanho automaticamente.",
+  hint = "Foto do celular. Mantém boa qualidade (até ~1800px).",
 }: {
   label: string;
   value: string;

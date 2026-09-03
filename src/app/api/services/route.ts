@@ -12,6 +12,7 @@ export async function GET() {
         description: true,
         price: true,
         duration: true,
+        imageData: true,
       },
     });
     return NextResponse.json(items);

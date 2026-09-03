@@ -140,10 +140,10 @@ export default async function HomePage() {
                 <img
                   src={s.imageData}
                   alt={s.name}
-                  className="h-48 w-full object-cover sm:h-40"
+                  className="h-56 w-full object-cover sm:h-52"
                 />
               ) : (
-                <div className="h-32 w-full bg-[var(--muted)] flex items-center justify-center text-[var(--muted-fg)] text-sm sm:h-28">
+                <div className="h-40 w-full bg-[var(--muted)] flex items-center justify-center text-[var(--muted-fg)] text-sm sm:h-36">
                   Sem foto
                 </div>
               )}
@@ -183,7 +183,7 @@ export default async function HomePage() {
                 <img
                   src={p.imageData}
                   alt={p.name}
-                  className="h-32 w-full object-cover"
+                  className="h-44 w-full object-cover sm:h-36"
                 />
               ) : null}
               <div className="p-4">
