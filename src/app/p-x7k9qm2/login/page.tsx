@@ -33,12 +33,12 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4">
       <form onSubmit={handleSubmit} className="card w-full max-w-sm space-y-4">
         <div className="text-center">
-          <Scissors className="mx-auto text-[#d4a017] mb-2" size={32} />
-          <h1 className="text-xl font-bold">Área Admin</h1>
-          <p className="text-sm text-neutral-400">Entre para gerenciar a barbearia</p>
+          <Scissors className="mx-auto text-[var(--primary)] mb-2" size={32} />
+          <h1 className="text-xl font-bold">Entrar no painel</h1>
+          <p className="text-sm text-[var(--muted-fg)]">Só para o dono da barbearia</p>
         </div>
         {error && (
-          <p className="text-sm text-red-400 bg-red-900/30 rounded-lg px-3 py-2">{error}</p>
+          <p className="text-sm text-red-400 bg-red-900/30 rounded-xl px-3 py-2">{error}</p>
         )}
         <div>
           <label className="label">Email</label>

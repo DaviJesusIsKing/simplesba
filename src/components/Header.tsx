@@ -13,11 +13,11 @@ export function Header({
   const [open, setOpen] = useState(false);
 
   const linkClass =
-    "block rounded-xl px-3 py-3 text-base active:bg-[var(--muted)]";
+    "block rounded-xl px-4 py-3.5 text-base active:bg-[var(--muted)]";
 
   return (
     <header className="site-header sticky top-0 z-50 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3.5">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-3 px-4 py-3">
         <Link
           href="/"
           className="flex min-w-0 items-center gap-2 font-semibold"
@@ -27,7 +27,7 @@ export function Header({
           <span className="truncate text-base sm:text-lg">{name}</span>
         </Link>
 
-        <nav className="hidden items-center gap-5 text-sm md:flex">
+        <nav className="hidden items-center gap-6 text-sm md:flex">
           <a href="/agendar">Agendar</a>
           <a href="/meus-agendamentos">Meus horários</a>
           <a href="#servicos">Serviços</a>
@@ -39,20 +39,15 @@ export function Header({
         <div className="flex items-center gap-2 md:hidden">
           <Link
             href="/meus-agendamentos"
-            className="flex h-12 max-w-[9.5rem] items-center gap-1.5 rounded-xl border-2 border-[var(--primary)] bg-[var(--primary)]/15 px-2.5 text-sm font-semibold text-[var(--primary)]"
+            className="flex h-11 w-11 items-center justify-center rounded-xl border border-[var(--border)]"
             aria-label="Meus horários"
+            style={{ color: "var(--header-fg)" }}
           >
-            <CalendarClock size={18} className="shrink-0" />
-            <span className="leading-tight text-left">
-              Meus
-              <span className="block text-[11px] font-medium opacity-90">
-                horários
-              </span>
-            </span>
+            <CalendarClock size={20} />
           </Link>
           <button
             type="button"
-            className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--border)]"
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[var(--border)]"
             onClick={() => setOpen(!open)}
             aria-label={open ? "Fechar menu" : "Abrir menu"}
             style={{ color: "var(--header-fg)" }}
@@ -64,14 +59,10 @@ export function Header({
 
       {open && (
         <nav className="flex flex-col gap-1 border-t border-[var(--border)] px-3 py-3 md:hidden">
-          <a href="/agendar" className={linkClass} onClick={() => setOpen(false)}>
+          <a href="/agendar" className={`${linkClass} bg-[var(--primary)] text-[var(--primary-fg)] font-semibold`} onClick={() => setOpen(false)}>
             Agendar horário
           </a>
-          <a
-            href="/meus-agendamentos"
-            className={`${linkClass} border border-[var(--primary)]/40 bg-[var(--primary)]/10 text-[var(--primary)] font-medium`}
-            onClick={() => setOpen(false)}
-          >
+          <a href="/meus-agendamentos" className={linkClass} onClick={() => setOpen(false)}>
             Meus horários
           </a>
           <a href="#servicos" className={linkClass} onClick={() => setOpen(false)}>

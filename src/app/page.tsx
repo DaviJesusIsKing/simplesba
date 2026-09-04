@@ -78,15 +78,13 @@ export default async function HomePage() {
     "Olá! Gostaria de agendar um horário."
   )}`;
 
-
-
   return (
-    <div >
+    <div>
       <Header name={name} showProducts={est?.showProducts !== false} />
 
       {error && (
         <div className="mx-auto max-w-6xl px-4 pt-6">
-          <div className="rounded-lg border border-amber-600/50 bg-amber-900/30 px-4 py-3 text-sm text-amber-200">
+          <div className="rounded-2xl border border-amber-600/50 bg-amber-900/30 px-4 py-3 text-sm text-amber-200">
             {error}
           </div>
         </div>
@@ -99,73 +97,64 @@ export default async function HomePage() {
             style={{ backgroundImage: `url(${est.bannerImage})` }}
           />
         ) : null}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-[color-mix(in_srgb,var(--bg)_55%,transparent)] to-[var(--bg)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-20 text-center">
-          <p className="mb-3 text-xs font-semibold tracking-[0.18em] text-primary sm:text-sm">
-            ESTILO & QUALIDADE
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-[color-mix(in_srgb,var(--bg)_50%,transparent)] to-[var(--bg)]" />
+        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-24 text-center">
+          <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-primary">
+            BARBEARIA
           </p>
-          <h1 className="mb-4 text-[2rem] font-bold leading-[1.15] sm:text-5xl">{name}</h1>
-          <p className="mx-auto mb-8 max-w-xl text-muted">
-            {est?.description ||
-              "Cortes masculinos, barba e cuidados pessoais."}
+          <h1 className="mb-4 text-[2.15rem] font-bold leading-[1.12] sm:text-5xl">
+            {name}
+          </h1>
+          <p className="mx-auto mb-8 max-w-md text-[1.05rem] text-muted">
+            {est?.description || "Cortes masculinos, barba e cuidados pessoais."}
           </p>
           <div className="hero-btns flex flex-wrap justify-center gap-3">
-            <a href="/agendar" className="btn btn-primary">
+            <a href="/agendar" className="btn btn-primary text-base">
               Agendar horário
             </a>
             <a href="#servicos" className="btn btn-secondary">
-              Ver serviços
-            </a>
-            <a
-              href={waLink}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-secondary"
-            >
-              WhatsApp
+              Ver cortes
             </a>
           </div>
         </div>
       </section>
 
       <section id="servicos" className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-2 flex items-center gap-2 text-2xl font-bold">
-          <Scissors className="text-primary" size={24} /> Serviços
+        <h2 className="mb-1 flex items-center gap-2 text-2xl font-bold">
+          <Scissors className="text-primary" size={22} /> Cortes
         </h2>
-        <p className="mb-5 text-sm text-muted">Escolha o corte e agende neste card.</p>
+        <p className="mb-6 text-sm text-muted">Toque no corte para agendar.</p>
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {services.map((s) => (
-            <div key={s.id} className="card overflow-hidden !p-0">
+            <a
+              key={s.id}
+              href={`/agendar?servico=${s.id}`}
+              className="card overflow-hidden !p-0 block active:scale-[0.99] transition"
+            >
               {s.imageData ? (
                 <img
                   src={s.imageData}
                   alt={s.name}
-                  className="h-56 w-full object-cover sm:h-52"
+                  className="h-52 w-full object-cover sm:h-48"
                 />
               ) : (
-                <div className="h-40 w-full bg-[var(--muted)] flex items-center justify-center text-[var(--muted-fg)] text-sm sm:h-36">
+                <div className="h-36 w-full bg-[var(--muted)] flex items-center justify-center text-muted text-sm">
                   Sem foto
                 </div>
               )}
               <div className="p-4">
-              <h3 className="text-xl font-semibold leading-snug">{s.name}</h3>
-              <p className="mt-1.5 mb-4 text-[15px] leading-relaxed text-muted">
-                {s.description}
-              </p>
-              <div className="flex items-center justify-between text-sm">
-                <span className="font-semibold text-primary">
-                  R$ {s.price.toFixed(2)}
-                </span>
-                <span className="text-muted">{s.duration} min</span>
+                <div className="flex items-start justify-between gap-3">
+                  <h3 className="text-lg font-semibold leading-snug">{s.name}</h3>
+                  <span className="shrink-0 font-semibold text-primary">
+                    R$ {s.price.toFixed(2)}
+                  </span>
+                </div>
+                <p className="mt-1.5 mb-3 text-sm leading-relaxed text-muted">
+                  {s.description}
+                </p>
+                <p className="text-xs text-muted">{s.duration} min · Agendar</p>
               </div>
-              <a
-                href={`/agendar?servico=${s.id}`}
-                className="btn btn-primary mt-4 w-full text-base"
-              >
-                Agendar este
-              </a>
-              </div>
-            </div>
+            </a>
           ))}
           {services.length === 0 && (
             <p className="text-muted">Nenhum serviço cadastrado.</p>
@@ -174,80 +163,67 @@ export default async function HomePage() {
       </section>
 
       {est?.showProducts !== false && (
-      <section id="produtos" className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-6 text-2xl font-bold">Produtos</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {products.map((p) => (
-            <div key={p.id} className="card overflow-hidden !p-0">
-              {p.imageData ? (
-                <img
-                  src={p.imageData}
-                  alt={p.name}
-                  className="h-44 w-full object-cover sm:h-36"
-                />
-              ) : null}
-              <div className="p-4">
-              <h3 className="font-semibold">{p.name}</h3>
-              <p className="mt-1 mb-3 text-sm text-muted">
-                {p.description}
-              </p>
-              <div className="mb-3 flex items-center justify-between text-sm">
-                <span className="font-semibold text-primary">
-                  R$ {p.price.toFixed(2)}
-                </span>
-                <span className="text-muted">Estoque: {p.stock}</span>
+        <section id="produtos" className="mx-auto max-w-6xl px-4 py-12">
+          <h2 className="mb-6 text-2xl font-bold">Produtos</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {products.map((p) => (
+              <div key={p.id} className="card overflow-hidden !p-0">
+                {p.imageData ? (
+                  <img
+                    src={p.imageData}
+                    alt={p.name}
+                    className="h-40 w-full object-cover"
+                  />
+                ) : null}
+                <div className="p-4">
+                  <h3 className="font-semibold">{p.name}</h3>
+                  <p className="mt-1 mb-3 text-sm text-muted">{p.description}</p>
+                  <div className="mb-3 flex items-center justify-between text-sm">
+                    <span className="font-semibold text-primary">
+                      R$ {p.price.toFixed(2)}
+                    </span>
+                    <span className="text-muted">Estoque: {p.stock}</span>
+                  </div>
+                  <a
+                    href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(
+                      `Olá! Quero comprar: ${p.name}`
+                    )}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-secondary w-full text-sm"
+                  >
+                    Comprar no WhatsApp
+                  </a>
+                </div>
               </div>
-              <a
-                href={`https://wa.me/${whatsapp}?text=${encodeURIComponent(
-                  `Olá! Quero comprar: ${p.name}`
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-secondary w-full text-sm"
-              >
-                Comprar no WhatsApp
-              </a>
-              </div>
-            </div>
-          ))}
-          {products.length === 0 && (
-            <p className="text-muted">Nenhum produto cadastrado.</p>
-          )}
-        </div>
-      </section>
+            ))}
+            {products.length === 0 && (
+              <p className="text-muted">Nenhum produto cadastrado.</p>
+            )}
+          </div>
+        </section>
       )}
 
-
       <section id="faq" className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-2 text-2xl font-bold">Perguntas frequentes</h2>
-        <p className="text-sm text-[var(--muted-fg)] mb-6">
-          Dúvidas comuns sobre agendamento e pagamento.
-        </p>
+        <h2 className="mb-2 text-2xl font-bold">Dúvidas</h2>
+        <p className="text-sm text-muted mb-6">Agendamento e pagamento.</p>
         <div className="space-y-3">
           {[
             {
-              q: "Como faço para agendar?",
-              a: "Clique em Agendar horário, escolha o serviço, o dia e um horário livre. Informe seu nome e WhatsApp e confirme.",
+              q: "Como agendar?",
+              a: "Toque no corte, escolha o dia e o horário, coloque seu nome e WhatsApp.",
             },
             {
-              q: "Posso pagar pelo PIX?",
-              a: "Sim, se a barbearia liberar. Você pode pagar um sinal (por exemplo 50%) ou o valor cheio no PIX e enviar o comprovante no site. Também pode existir a opção de pagar só na hora, no salão.",
+              q: "Posso pagar no PIX?",
+              a: "Sim, se a barbearia liberar. Dá para mandar um sinal ou o valor cheio e enviar o comprovante no site.",
             },
             {
-              q: "Enviei o comprovante e fechei a página. E agora?",
-              a: "Entre em Meus horários, digite o mesmo telefone do agendamento e envie o comprovante de novo, se precisar.",
+              q: "Fechei a página sem mandar o comprovante.",
+              a: "Entre em Meus horários, use o mesmo telefone e envie de novo.",
             },
             {
-              q: "Quanto tempo tenho para confirmar o pagamento?",
-              a: "O horário fica reservado por cerca de 15 minutos. Se o pagamento/comprovante não for resolvido a tempo, a reserva pode expirar e o horário liberar.",
-            },
-            {
-              q: "Posso cancelar ou remarcar?",
-              a: "Fale pelo WhatsApp da barbearia o quanto antes. Assim liberam o horário para outra pessoa e tentam encaixar outro dia para você.",
-            },
-            {
-              q: "Criança ou corte diferente do site?",
-              a: "Se não encontrar o serviço, chame no WhatsApp. Muitas vezes dá para combinar no salão.",
+              q: "Posso cancelar?",
+              a: "Chame no WhatsApp o quanto antes para liberar o horário.",
             },
           ].map((item) => (
             <details
@@ -256,9 +232,9 @@ export default async function HomePage() {
             >
               <summary className="cursor-pointer font-medium list-none flex justify-between gap-3 items-center">
                 {item.q}
-                <span className="text-[var(--primary)] text-lg leading-none">+</span>
+                <span className="text-primary text-lg leading-none">+</span>
               </summary>
-              <p className="mt-3 text-sm text-[var(--muted-fg)] border-t border-[var(--border)] pt-3">
+              <p className="mt-3 text-sm text-muted border-t border-[var(--border)] pt-3">
                 {item.a}
               </p>
             </details>
@@ -267,28 +243,32 @@ export default async function HomePage() {
       </section>
 
       <section id="contato" className="mx-auto max-w-6xl px-4 py-12">
-        <h2 className="mb-6 text-2xl font-bold">Informações</h2>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="card flex gap-3">
-            <MapPin className="shrink-0 text-primary" size={20} />
-            <div>
-              <p className="text-sm font-medium">Local</p>
-              {est?.mapsUrl ? (
-                <a
-                  href={est.mapsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-sm text-primary underline"
-                >
-                  Abrir no Google Maps
-                </a>
-              ) : (
+        <h2 className="mb-5 text-2xl font-bold">Onde estamos</h2>
+        <div className="grid gap-3">
+          {est?.mapsUrl ? (
+            <a
+              href={est.mapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card flex gap-3 items-center !py-4"
+            >
+              <MapPin className="shrink-0 text-primary" size={22} />
+              <div>
+                <p className="text-sm font-medium">Como chegar</p>
+                <p className="text-sm text-primary">Abrir no Google Maps</p>
+              </div>
+            </a>
+          ) : (
+            <div className="card flex gap-3 items-center !py-4">
+              <MapPin className="shrink-0 text-primary" size={22} />
+              <div>
+                <p className="text-sm font-medium">Local</p>
                 <p className="text-sm text-muted">{est?.address || "—"}</p>
-              )}
+              </div>
             </div>
-          </div>
-          <div className="card flex gap-3">
-            <Clock className="shrink-0 text-primary" size={20} />
+          )}
+          <div className="card flex gap-3 items-center !py-4">
+            <Clock className="shrink-0 text-primary" size={22} />
             <div>
               <p className="text-sm font-medium">Horário</p>
               <p className="text-sm text-muted">
@@ -296,21 +276,26 @@ export default async function HomePage() {
               </p>
             </div>
           </div>
-          <div className="card flex gap-3">
-            <Phone className="shrink-0 text-primary" size={20} />
+          <a href={waLink} target="_blank" rel="noopener noreferrer" className="card flex gap-3 items-center !py-4">
+            <Phone className="shrink-0 text-primary" size={22} />
             <div>
-              <p className="text-sm font-medium">Telefone</p>
-              <p className="text-sm text-muted">{est?.phone || "—"}</p>
+              <p className="text-sm font-medium">WhatsApp</p>
+              <p className="text-sm text-primary">{est?.phone || "Chamar agora"}</p>
             </div>
-          </div>
+          </a>
           {est?.instagram && (
-            <div className="card flex gap-3">
-              <Instagram className="shrink-0 text-primary" size={20} />
+            <a
+              href={`https://instagram.com/${est.instagram}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="card flex gap-3 items-center !py-4"
+            >
+              <Instagram className="shrink-0 text-primary" size={22} />
               <div>
                 <p className="text-sm font-medium">Instagram</p>
                 <p className="text-sm text-muted">@{est.instagram}</p>
               </div>
-            </div>
+            </a>
           )}
         </div>
       </section>

@@ -208,7 +208,7 @@ function AgendarForm() {
           <ArrowLeft size={16} /> Voltar
         </Link>
         <h1 className="text-2xl font-bold mb-2">Agendar</h1>
-        <p className="text-sm text-[var(--muted-fg)] mb-5">Escolha o serviço, o dia e o horário.</p>
+        <p className="text-sm text-[var(--muted-fg)] mb-5">Três passos: corte, dia e seus dados.</p>
         {serviceId && services.find((s) => s.id === serviceId) && (
           <div className="mb-4 rounded-xl border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-3 py-2 text-sm">
             Serviço:{" "}
@@ -220,7 +220,7 @@ function AgendarForm() {
             <p className="text-sm text-red-400 bg-red-900/30 rounded-lg px-3 py-2">{error}</p>
           )}
           <div>
-            <label className="label">Serviço</label>
+            <label className="label">1. Corte</label>
             <select
               className="input"
               value={serviceId}
@@ -236,7 +236,7 @@ function AgendarForm() {
             </select>
           </div>
           <div>
-            <label className="label">Data</label>
+            <label className="label">2. Dia</label>
             <input
               type="date"
               className="input"
@@ -247,7 +247,7 @@ function AgendarForm() {
             />
           </div>
           <div>
-            <label className="label">Horário</label>
+            <label className="label">3. Horário</label>
             {loadingTimes ? (
               <Loader2 className="animate-spin text-[var(--primary)]" size={20} />
             ) : (
