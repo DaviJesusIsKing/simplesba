@@ -373,48 +373,34 @@ export default function ConfigPage() {
             try {
               custom = JSON.parse(form.hoursByDay || "{}")[d.value] || {};
             } catch {}
+            const patchDay = (next: Partial<{ open: string; close: string; open2: string; close2: string }>) => {
+              let map: Record<string, { open?: string; close?: string; open2?: string; close2?: string }> = {};
+              try {
+                map = JSON.parse(form.hoursByDay || "{}");
+              } catch {}
+              const merged = { ...custom, ...next };
+              if (!merged.open && !merged.close && !merged.open2 && !merged.close2) {
+                delete map[d.value];
+              } else {
+                map[d.value] = merged;
+              }
+              set("hoursByDay", JSON.stringify(map));
+            };
             return (
-              <div key={d.value} className="flex flex-wrap items-center gap-2 text-sm">
-                <span className="w-20 text-[var(--muted-fg)]">{d.label}</span>
-                <input
-                  type="time"
-                  className="input w-auto py-1"
-                  value={custom.open || ""}
-                  onChange={(e) => {
-                    let map: Record<string, { open: string; close: string }> = {};
-                    try {
-                      map = JSON.parse(form.hoursByDay || "{}");
-                    } catch {}
-                    const open = e.target.value;
-                    const close = custom.close || form.closeTime;
-                    if (!open && !(custom.close || "")) {
-                      delete map[d.value];
-                    } else {
-                      map[d.value] = { open: open || form.openTime, close };
-                    }
-                    set("hoursByDay", JSON.stringify(map));
-                  }}
-                />
-                <span className="text-[var(--muted-fg)]">até</span>
-                <input
-                  type="time"
-                  className="input w-auto py-1"
-                  value={custom.close || ""}
-                  onChange={(e) => {
-                    let map: Record<string, { open: string; close: string }> = {};
-                    try {
-                      map = JSON.parse(form.hoursByDay || "{}");
-                    } catch {}
-                    const close = e.target.value;
-                    const open = custom.open || form.openTime;
-                    if (!close && !(custom.open || "")) {
-                      delete map[d.value];
-                    } else {
-                      map[d.value] = { open, close: close || form.closeTime };
-                    }
-                    set("hoursByDay", JSON.stringify(map));
-                  }}
-                />
+              <div key={d.value} className="rounded-xl border border-[var(--border)] p-3 space-y-2 text-sm">
+                <span className="text-[var(--muted-fg)] font-medium">{d.label}</span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-[var(--muted-fg)] w-14">1º</span>
+                  <input type="time" className="input w-auto py-1" value={custom.open || ""} onChange={(e) => patchDay({ open: e.target.value })} />
+                  <span className="text-[var(--muted-fg)]">até</span>
+                  <input type="time" className="input w-auto py-1" value={custom.close || ""} onChange={(e) => patchDay({ close: e.target.value })} />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-[var(--muted-fg)] w-14">2º</span>
+                  <input type="time" className="input w-auto py-1" value={(custom as { open2?: string }).open2 || ""} onChange={(e) => patchDay({ open2: e.target.value })} />
+                  <span className="text-[var(--muted-fg)]">até</span>
+                  <input type="time" className="input w-auto py-1" value={(custom as { close2?: string }).close2 || ""} onChange={(e) => patchDay({ close2: e.target.value })} />
+                </div>
               </div>
             );
           })}

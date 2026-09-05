@@ -430,10 +430,10 @@ function AgendarForm() {
             </label>
           </div>
 
-          <div className="sticky bottom-3 z-10 pt-2 sm:static">
+          <div className="pt-2 pb-6">
             <button
               type="submit"
-              className="btn btn-primary w-full shadow-lg shadow-black/30"
+              className="btn btn-primary w-full"
               disabled={saving || !time || !serviceId || !readNotice}
             >
               {saving ? (

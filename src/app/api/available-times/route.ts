@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { expireOldPendings } from "@/lib/appointments";
+import { brazilNow } from "@/lib/brazil-time";
 
 function normTime(t: string): string {
   const parts = String(t).trim().split(":");
@@ -35,13 +36,13 @@ function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {
   return aStart < bEnd && bStart < aEnd;
 }
 
-type DayHours = { open: string; close: string };
+type DayHours = { open: string; close: string; open2?: string; close2?: string };
 
-function resolveHours(
+function resolveWindows(
   est: { openTime: string; closeTime: string; hoursByDay?: string | null },
   weekday: number
-): DayHours {
-  const fallback = {
+): DayHours[] {
+  const fallback: DayHours = {
     open: est.openTime || "09:00",
     close: est.closeTime || "19:00",
   };
@@ -49,12 +50,16 @@ function resolveHours(
     const map = JSON.parse(est.hoursByDay || "{}") as Record<string, DayHours>;
     const custom = map[String(weekday)];
     if (custom?.open && custom?.close) {
-      return { open: custom.open, close: custom.close };
+      const windows: DayHours[] = [{ open: custom.open, close: custom.close }];
+      if (custom.open2 && custom.close2) {
+        windows.push({ open: custom.open2, close: custom.close2 });
+      }
+      return windows;
     }
   } catch {
     // ignore
   }
-  return fallback;
+  return [fallback];
 }
 
 export async function GET(req: NextRequest) {
@@ -76,8 +81,7 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const [y, mo, d] = date.split("-").map(Number);
-    const weekday = new Date(y, mo - 1, d).getDay();
+    const weekday = new Date(`${date}T12:00:00-03:00`).getUTCDay();
 
     let openDays = (est.openDays || "0,1,2,3,4,5,6")
       .split(",")
@@ -95,9 +99,9 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    const { open: openTime, close: closeTime } = resolveHours(est, weekday);
-    const closeMin = toMinutes(closeTime);
-    const all = buildSlots(openTime, closeTime, 30);
+    const windows = resolveWindows(est, weekday);
+    const all = windows.flatMap((w) => buildSlots(w.open, w.close, 30));
+    const uniqueAll = [...new Set(all)].sort();
 
     let duration = 30;
     if (serviceId) {
@@ -125,18 +129,23 @@ export async function GET(req: NextRequest) {
       console.error("appointment query:", err);
     }
 
-    const now = new Date();
-    const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
-    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const br = brazilNow();
+    const todayStr = br.dateStr;
+    const nowMin = br.nowMin;
 
     const lunchOn = !!(est as { lunchEnabled?: boolean }).lunchEnabled;
     const lunchStartMin = toMinutes((est as { lunchStart?: string }).lunchStart || "12:00");
     const lunchEndMin = toMinutes((est as { lunchEnd?: string }).lunchEnd || "13:00");
 
-    const times = all.filter((slot) => {
+    const times = uniqueAll.filter((slot) => {
       const start = toMinutes(slot);
       const end = start + duration;
-      if (end > closeMin) return false;
+      const inWindow = windows.some((w) => {
+        const openM = toMinutes(w.open);
+        const closeM = toMinutes(w.close);
+        return start >= openM && end <= closeM;
+      });
+      if (!inWindow) return false;
       if (date === todayStr && start <= nowMin) return false;
       // horário de almoço
       if (lunchOn && lunchEndMin > lunchStartMin) {
@@ -154,8 +163,8 @@ export async function GET(req: NextRequest) {
       times,
       closed: false,
       duration,
-      openTime: normTime(openTime),
-      closeTime: normTime(closeTime),
+      openTime: normTime(windows[0]?.open || "09:00"),
+      closeTime: normTime(windows[windows.length - 1]?.close || "19:00"),
       weekday,
     });
   } catch (e) {
