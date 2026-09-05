@@ -132,13 +132,11 @@ export default async function HomePage() {
               className="card overflow-hidden !p-0 block active:scale-[0.99] transition"
             >
               {s.imageData ? (
-                <img
-                  src={s.imageData}
-                  alt={s.name}
-                  className="h-52 w-full object-cover sm:h-48"
-                />
+                <div className="cut-photo-wrap">
+                  <img src={s.imageData} alt={s.name} className="cut-photo" />
+                </div>
               ) : (
-                <div className="h-36 w-full bg-[var(--muted)] flex items-center justify-center text-muted text-sm">
+                <div className="cut-photo-wrap text-muted text-sm bg-[var(--muted)]">
                   Sem foto
                 </div>
               )}
@@ -169,11 +167,9 @@ export default async function HomePage() {
             {products.map((p) => (
               <div key={p.id} className="card overflow-hidden !p-0">
                 {p.imageData ? (
-                  <img
-                    src={p.imageData}
-                    alt={p.name}
-                    className="h-40 w-full object-cover"
-                  />
+                  <div className="cut-photo-wrap cut-photo-wrap-sm">
+                    <img src={p.imageData} alt={p.name} className="cut-photo" />
+                  </div>
                 ) : null}
                 <div className="p-4">
                   <h3 className="font-semibold">{p.name}</h3>
