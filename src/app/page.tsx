@@ -147,10 +147,9 @@ export default async function HomePage() {
                     R$ {s.price.toFixed(2)}
                   </span>
                 </div>
-                <p className="mt-1.5 mb-3 text-sm leading-relaxed text-muted">
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">
                   {s.description}
                 </p>
-                <p className="text-xs text-muted">{s.duration} min · Agendar</p>
               </div>
             </a>
           ))}

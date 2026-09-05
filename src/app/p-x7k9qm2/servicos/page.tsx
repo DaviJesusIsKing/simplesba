@@ -13,7 +13,7 @@ type Service = {
   active: boolean;
 };
 
-const empty = { name: "", description: "", price: "", duration: "", imageData: "" };
+const empty = { name: "", description: "", price: "", duration: "30", imageData: "" };
 
 export default function ServicosPage() {
   const [items, setItems] = useState<Service[]>([]);
@@ -97,22 +97,17 @@ export default function ServicosPage() {
           <label className="label">Descrição</label>
           <input className="input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className="label">Preço (R$)</label>
-            <input className="input" type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-          </div>
-          <div>
         <ImagePicker
           label="Foto do corte / serviço"
           value={form.imageData}
           onChange={(imageData) => setForm({ ...form, imageData })}
-          hint="Aparece no site, no card do serviço. JPG/PNG até ~800 KB."
+          hint="Aparece no card do site."
         />
-            <label className="label">Duração (min)</label>
-            <input className="input" type="number" value={form.duration} onChange={(e) => setForm({ ...form, duration: e.target.value })} required />
-          </div>
+        <div>
+          <label className="label">Preço (R$)</label>
+          <input className="input" type="number" step="0.01" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
         </div>
+        <input type="hidden" value={form.duration || "30"} readOnly />
         <div className="flex gap-2">
           <button type="submit" className="btn btn-primary" disabled={saving}>
             {saving ? <Loader2 className="animate-spin" size={16} /> : editId ? "Salvar" : <><Plus size={16} /> Adicionar</>}
@@ -131,11 +126,16 @@ export default function ServicosPage() {
         <div className="space-y-2">
           {items.map((s) => (
             <div key={s.id} className="card flex items-center justify-between gap-3">
-              <div>
-                <p className="font-medium">{s.name}</p>
-                <p className="text-sm text-[var(--muted-fg)]">
-                  R$ {s.price.toFixed(2)} · {s.duration} min
-                </p>
+              <div className="flex items-center gap-3 min-w-0">
+                {s.imageData ? (
+                  <img src={s.imageData} alt="" className="h-12 w-12 rounded-xl object-cover object-center shrink-0" />
+                ) : null}
+                <div className="min-w-0">
+                  <p className="font-medium truncate">{s.name}</p>
+                  <p className="text-sm text-[var(--muted-fg)]">
+                    R$ {s.price.toFixed(2)}
+                  </p>
+                </div>
               </div>
               <div className="flex gap-2">
                 <button className="btn btn-secondary p-2" onClick={() => startEdit(s)} aria-label="Editar">
