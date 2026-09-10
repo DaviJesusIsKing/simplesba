@@ -91,6 +91,7 @@ model Appointment {
   id              String    @id @default(cuid())
   clientName      String
   clientPhone     String
+  clientPhoneDigits String   @default("")
   date            String
   time            String
   status          String    @default("pending")
@@ -115,4 +116,5 @@ model Appointment {
   @@index([establishmentId, date])
   @@index([status, expiresAt])
   @@index([clientPhone])
+  @@index([clientPhoneDigits])
 }

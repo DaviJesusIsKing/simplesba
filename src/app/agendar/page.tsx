@@ -131,8 +131,9 @@ function AgendarForm() {
         return;
       }
       const id = data.appointment?.id || data.id;
-      if (id) {
-        router.push(`/agendamento/sucesso?id=${id}`);
+      const token = data.appointment?.accessToken;
+      if (id && token) {
+        router.push(`/agendamento/sucesso?id=${encodeURIComponent(id)}&token=${encodeURIComponent(token)}`);
         return;
       }
       const svc = services.find((s) => s.id === serviceId);

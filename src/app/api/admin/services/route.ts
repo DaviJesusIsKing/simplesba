@@ -1,60 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-async function guard() {
-  const session = await getServerSession(authOptions);
-  if (!session) return null;
-  return session;
-}
+import { getAdminSession, parseMoney, parsePositiveInt, sanitizeText, validateImageOrPdfDataUrl } from "@/lib/security";
 
 export async function GET() {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const items = await prisma.service.findMany({ orderBy: { name: "asc" } });
-  return NextResponse.json(items);
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json(await prisma.service.findMany({ orderBy: { name: "asc" } }));
 }
-
 export async function POST(req: NextRequest) {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const body = await req.json();
-  const est = await prisma.establishment.findFirst();
-  if (!est) return NextResponse.json({ error: "No establishment" }, { status: 400 });
-  const item = await prisma.service.create({
-    data: {
-      name: body.name,
-      description: body.description,
-      price: body.price,
-      duration: body.duration,
-      imageData: body.imageData ?? "",
-      establishmentId: est.id,
-    },
-  });
-  return NextResponse.json(item);
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const body = await req.json();
+    const name = sanitizeText(body.name, 100), description = sanitizeText(body.description, 500);
+    const price = parseMoney(body.price), duration = parsePositiveInt(body.duration, 5, 480);
+    if (!name || price === null || duration === null) return NextResponse.json({ error: "Nome, preço ou duração inválidos" }, { status: 400 });
+    const est = await prisma.establishment.findFirst();
+    if (!est) return NextResponse.json({ error: "Estabelecimento não encontrado" }, { status: 400 });
+    const imageData = body.imageData ? validateImageOrPdfDataUrl(body.imageData) || "" : "";
+    const item = await prisma.service.create({ data: { name, description, price, duration, imageData, establishmentId: est.id } });
+    return NextResponse.json(item);
+  } catch (e) { console.error(e); return NextResponse.json({ error: "Erro ao criar serviço" }, { status: 500 }); }
 }
-
 export async function PUT(req: NextRequest) {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const id = req.nextUrl.searchParams.get("id");
-  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  const body = await req.json();
-  const item = await prisma.service.update({
-    where: { id },
-    data: {
-      name: body.name,
-      description: body.description,
-      price: body.price,
-      duration: body.duration,
-      imageData: body.imageData ?? "",
-    },
-  });
-  return NextResponse.json(item);
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try {
+    const id = req.nextUrl.searchParams.get("id"), body = await req.json();
+    const name = sanitizeText(body.name, 100), description = sanitizeText(body.description, 500);
+    const price = parseMoney(body.price), duration = parsePositiveInt(body.duration, 5, 480);
+    if (!id || !name || price === null || duration === null) return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+    const imageData = body.imageData ? validateImageOrPdfDataUrl(body.imageData) || "" : "";
+    const item = await prisma.service.update({ where: { id }, data: { name, description, price, duration, imageData } });
+    return NextResponse.json(item);
+  } catch (e) { console.error(e); return NextResponse.json({ error: "Erro ao atualizar serviço" }, { status: 500 }); }
 }
-
 export async function DELETE(req: NextRequest) {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  await prisma.service.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try { await prisma.service.delete({ where: { id } }); return NextResponse.json({ ok: true }); }
+  catch { return NextResponse.json({ error: "Não foi possível excluir o serviço. Pode haver agendamentos vinculados." }, { status: 409 }); }
 }

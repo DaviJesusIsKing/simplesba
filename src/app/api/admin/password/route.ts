@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
 import bcrypt from "bcryptjs";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getAdminSession } from "@/lib/security";
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await getAdminSession();
   if (!session?.user?.email) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -14,7 +13,7 @@ export async function POST(req: NextRequest) {
   const current = String(body.currentPassword || "");
   const next = String(body.newPassword || "");
 
-  if (next.length < 8) {
+  if (current.length < 1 || next.length < 8 || next.length > 128) {
     return NextResponse.json(
       { error: "A nova senha precisa ter no mínimo 8 caracteres" },
       { status: 400 }

@@ -1,199 +1,149 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { expireOldPendings, reservationDeadline } from "@/lib/appointments";
+import { expireOldPendings, lockAppointmentDay, reservationDeadline } from "@/lib/appointments";
 import { sendTelegramAlert } from "@/lib/telegram";
-
-function normTime(t: string): string {
-  const parts = String(t).trim().split(":");
-  const h = String(parseInt(parts[0] || "0", 10)).padStart(2, "0");
-  const m = String(parseInt(parts[1] || "0", 10)).padStart(2, "0");
-  return `${h}:${m}`;
-}
+import { appointmentAccessToken, isValidDateISO, isValidTime, sanitizeText } from "@/lib/security";
+import { brazilNow } from "@/lib/brazil-time";
 
 function toMinutes(t: string): number {
-  const [h, m] = normTime(t).split(":").map(Number);
+  const [h, m] = t.split(":").map(Number);
   return h * 60 + m;
 }
-
 function overlaps(aStart: number, aEnd: number, bStart: number, bEnd: number) {
   return aStart < bEnd && bStart < aEnd;
+}
+function getWeekday(dateStr: string) {
+  return new Date(`${dateStr}T12:00:00-03:00`).getUTCDay();
+}
+function getDayHours(est: { openTime: string; closeTime: string; hoursByDay: string | null }, weekday: number) {
+  let open = est.openTime || "09:00";
+  let close = est.closeTime || "19:00";
+  try {
+    const map = JSON.parse(est.hoursByDay || "{}") as Record<string, { open?: string; close?: string }>;
+    const custom = map[String(weekday)];
+    if (custom?.open && custom?.close && isValidTime(custom.open) && isValidTime(custom.close)) {
+      open = custom.open;
+      close = custom.close;
+    }
+  } catch {}
+  return { open, close };
 }
 
 export async function POST(req: NextRequest) {
   try {
-    await expireOldPendings();
+    if (!process.env.NEXTAUTH_SECRET || process.env.NEXTAUTH_SECRET.length < 32) {
+      return NextResponse.json({ error: "NEXTAUTH_SECRET não configurado corretamente" }, { status: 500 });
+    }
     const body = await req.json();
-    const { serviceId, date, time, clientName, clientPhone, paymentMethod, pixAmount } = body;
+    const serviceId = sanitizeText(body.serviceId, 100);
+    const date = sanitizeText(body.date, 10);
+    const time = sanitizeText(body.time, 5);
+    const clientName = sanitizeText(body.clientName, 120);
+    const clientPhone = sanitizeText(body.clientPhone, 30);
 
-    if (!serviceId || !date || !time || !clientName || !clientPhone) {
-      return NextResponse.json({ error: "Preencha todos os campos" }, { status: 400 });
+    if (!serviceId || !isValidDateISO(date) || !isValidTime(time) || !clientName || !clientPhone) {
+      return NextResponse.json({ error: "Dados de agendamento inválidos" }, { status: 400 });
+    }
+    const phoneDigits = clientPhone.replace(/\D/g, "");
+    if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+      return NextResponse.json({ error: "Informe um telefone válido" }, { status: 400 });
     }
 
-    const est = await prisma.establishment.findFirst();
-    if (!est) {
-      return NextResponse.json({ error: "Estabelecimento não encontrado" }, { status: 400 });
-    }
+    const today = brazilNow();
+    if (date < today.dateStr) return NextResponse.json({ error: "Não é possível agendar no passado" }, { status: 400 });
 
-    const policy = est.paymentPolicy || "both";
-    let method = String(paymentMethod || "local");
-    if (policy === "pix_only") method = "pix";
-    if (policy === "local_only") method = "local";
-    if (method !== "pix" && method !== "local") method = "local";
+    const result = await prisma.$transaction(async (tx) => {
+      await expireOldPendings(tx);
+      const est = await tx.establishment.findFirst();
+      if (!est) throw new Error("Estabelecimento não encontrado");
 
-    if (method === "pix" && !(est.pixKey || "").trim()) {
-      return NextResponse.json(
-        { error: "PIX ainda não configurado pelo estabelecimento" },
-        { status: 400 }
-      );
-    }
+      const policy = est.paymentPolicy || "both";
+      let method = String(body.paymentMethod || "local");
+      if (policy === "pix_only") method = "pix";
+      if (policy === "local_only") method = "local";
+      if (method !== "pix" && method !== "local") method = "local";
+      if (method === "pix" && !est.pixKey.trim()) throw new Error("PIX ainda não configurado pelo estabelecimento");
 
-    const service = await prisma.service.findUnique({
-      where: { id: String(serviceId) },
-    });
-    if (!service || !service.active) {
-      return NextResponse.json({ error: "Serviço inválido ou inativo" }, { status: 400 });
-    }
+      const service = await tx.service.findFirst({ where: { id: serviceId, establishmentId: est.id, active: true } });
+      if (!service) throw new Error("Serviço inválido ou inativo");
 
-    const dateStr = String(date).slice(0, 10);
-    const timeStr = normTime(String(time));
-    const duration = service.duration > 0 ? service.duration : 30;
-    const start = toMinutes(timeStr);
-    const end = start + duration;
+      const weekday = getWeekday(date);
+      const openDays = (est.openDays || "1,2,3,4,5,6").split(",").map((x) => x.trim()).filter(Boolean);
+      if (openDays.length && !openDays.includes(String(weekday))) throw new Error("Barbearia fechada neste dia");
 
-    const [y, mo, d] = dateStr.split("-").map(Number);
-    if (!y || !mo || !d) {
-      return NextResponse.json({ error: "Data inválida" }, { status: 400 });
-    }
-    const weekday = new Date(y, mo - 1, d).getDay();
+      const { open, close } = getDayHours(est, weekday);
+      const start = toMinutes(time);
+      const duration = service.duration > 0 ? service.duration : 30;
+      const end = start + duration;
+      const openMin = toMinutes(open);
+      const closeMin = toMinutes(close);
+      if (start < openMin || end > closeMin) throw new Error("Esse serviço não cabe neste horário");
 
-    let openStr = est.openTime || "09:00";
-    let closeStr = est.closeTime || "19:00";
-    try {
-      const map = JSON.parse(est.hoursByDay || "{}") as Record<
-        string,
-        { open: string; close: string }
-      >;
-      const custom = map[String(weekday)];
-      if (custom?.open && custom?.close) {
-        openStr = custom.open;
-        closeStr = custom.close;
+      if (date === today.dateStr && start <= today.nowMin) throw new Error("Escolha um horário futuro");
+
+      if (est.lunchEnabled) {
+        const ls = toMinutes(est.lunchStart || "12:00");
+        const le = toMinutes(est.lunchEnd || "13:00");
+        if (le > ls && overlaps(start, end, ls, le)) throw new Error("Horário de almoço. Escolha outro horário.");
       }
-    } catch {
-      // ignore
-    }
-    const openMin = toMinutes(openStr);
-    const closeMin = toMinutes(closeStr);
 
-    const openDays = (est.openDays || "0,1,2,3,4,5,6")
-      .split(",")
-      .map((x) => x.trim())
-      .filter(Boolean);
-    if (openDays.length > 0 && !openDays.includes(String(weekday))) {
-      return NextResponse.json({ error: "Barbearia fechada neste dia" }, { status: 400 });
-    }
-
-    if (start < openMin) {
-      return NextResponse.json({ error: "Horário antes da abertura" }, { status: 400 });
-    }
-    if (end > closeMin) {
-      return NextResponse.json(
-        { error: "Esse serviço não cabe neste horário (passa do fechamento)" },
-        { status: 400 }
-      );
-    }
-
-    if (est.lunchEnabled) {
-      const ls = toMinutes(est.lunchStart || "12:00");
-      const le = toMinutes(est.lunchEnd || "13:00");
-      if (le > ls && overlaps(start, end, ls, le)) {
-        return NextResponse.json(
-          { error: "Horário de almoço. Escolha outro horário." },
-          { status: 400 }
-        );
+      // Critical section: all availability checks + create share one DB lock.
+      await lockAppointmentDay(tx, est.id, date);
+      const existing = await tx.appointment.findMany({
+        where: { establishmentId: est.id, date, status: { in: ["pending", "confirmed", "done"] } },
+        include: { service: { select: { duration: true } } },
+      });
+      for (const e of existing) {
+        const bStart = toMinutes(e.time);
+        const bEnd = bStart + (e.service.duration > 0 ? e.service.duration : 30);
+        if (overlaps(start, end, bStart, bEnd)) throw new Error("Horário conflita com outro agendamento");
       }
-    }
 
-    const existing = await prisma.appointment.findMany({
-      where: {
-        establishmentId: est.id,
-        date: dateStr,
-        status: { in: ["pending", "confirmed", "done"] },
-      },
-      include: { service: { select: { duration: true } } },
-    });
-
-    for (const e of existing) {
-      const bStart = toMinutes(e.time);
-      const bDur = e.service && e.service.duration > 0 ? e.service.duration : 30;
-      const bEnd = bStart + bDur;
-      if (overlaps(start, end, bStart, bEnd)) {
-        return NextResponse.json(
-          { error: "Horário conflita com outro agendamento. Escolha outro." },
-          { status: 409 }
-        );
-      }
-    }
-
-    // Cliente escolhe no PIX: sinal (%) ou valor cheio
-    const pct = Math.min(
-      100,
-      Math.max(1, (est as { pixChargePercent?: number }).pixChargePercent ?? 50)
-    );
-    let amountDue = service.price;
-    if (method === "pix") {
-      const choice = String(pixAmount || "full");
-      if (choice === "half") {
+      const pct = Math.min(100, Math.max(1, est.pixChargePercent || 50));
+      const choice = String(body.pixAmount || "full");
+      let amountDue = service.price;
+      if (method === "pix" && est.pixChargeMode === "half" && choice === "half") {
         amountDue = Math.round(service.price * pct) / 100;
-      } else {
-        amountDue = service.price;
       }
-    }
-    amountDue = Math.round(amountDue * 100) / 100;
+      amountDue = Math.round(amountDue * 100) / 100;
 
-    const paymentStatus = method === "pix" ? "awaiting_receipt" : "unpaid";
+      const apt = await tx.appointment.create({
+        data: {
+          clientName,
+          clientPhone,
+          clientPhoneDigits: phoneDigits,
+          date,
+          time,
+          status: "pending",
+          paymentMethod: method,
+          paymentStatus: method === "pix" ? "awaiting_receipt" : "unpaid",
+          amountDue,
+          expiresAt: reservationDeadline(),
+          serviceId: service.id,
+          establishmentId: est.id,
+        },
+        include: { service: true },
+      });
+      return { apt, est };
+    }, { isolationLevel: "Serializable", maxWait: 5000, timeout: 10000 });
 
-    const apt = await prisma.appointment.create({
-      data: {
-        clientName: String(clientName).trim().slice(0, 120),
-        clientPhone: String(clientPhone).trim().slice(0, 30),
-        date: dateStr,
-        time: timeStr,
-        status: "pending",
-        paymentMethod: method,
-        paymentStatus,
-        amountDue,
-        expiresAt: reservationDeadline(),
-        serviceId: service.id,
-        establishmentId: est.id,
-      },
-      include: { service: true },
-    });
-
-        const payLabel =
-      method === "pix"
-        ? `PIX R$ ${amountDue.toFixed(2)}`
-        : "Pagar na hora";
+    const accessToken = appointmentAccessToken(result.apt.id, result.apt.clientPhone);
+    const payLabel = result.apt.paymentMethod === "pix" ? `PIX R$ ${result.apt.amountDue.toFixed(2)}` : "Pagar na hora";
     void sendTelegramAlert(
-      `📅 NOVO AGENDAMENTO\n\n👤 ${apt.clientName}\n📞 ${apt.clientPhone}\n✂️ ${apt.service.name}\n📆 ${dateStr} às ${timeStr}\n💰 ${payLabel}\n\nAbra o painel para confirmar.`,
+      `NOVO AGENDAMENTO\n\n${result.apt.clientName}\n${result.apt.clientPhone}\n${result.apt.service.name}\n${result.apt.date} às ${result.apt.time}\n${payLabel}\n\nAbra o painel para confirmar.`,
       { path: "/p-x7k9qm2/agendamentos", buttonLabel: "Abrir agendamentos" }
     );
 
-    return NextResponse.json({ ok: true, appointment: apt });
+    return NextResponse.json({ ok: true, appointment: { ...result.apt, accessToken } });
   } catch (e: unknown) {
     console.error("appointment create error:", e);
-    const err = e as { code?: string; message?: string };
-    if (err?.code === "P2002") {
+    const message = e instanceof Error ? e.message : "Erro ao agendar";
+    if (message.includes("conflita") || message.includes("Horário já ocupado")) {
       return NextResponse.json({ error: "Horário já ocupado. Escolha outro." }, { status: 409 });
     }
-    if (err?.message?.includes("does not exist") || err?.code === "P2021") {
-      return NextResponse.json(
-        { error: "Banco desatualizado. Rode: npx prisma db push" },
-        { status: 500 }
-      );
+    if (message.includes("não configurado") || message.includes("inválido") || message.includes("fechada") || message.includes("passado") || message.includes("futuro") || message.includes("almoço") || message.includes("cabe")) {
+      return NextResponse.json({ error: message }, { status: 400 });
     }
-    return NextResponse.json(
-      { error: err?.message ? `Erro: ${err.message}` : "Erro ao agendar" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erro ao agendar" }, { status: 500 });
   }
 }

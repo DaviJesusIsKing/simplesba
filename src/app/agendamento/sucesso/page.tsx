@@ -22,6 +22,7 @@ function formatDateBR(iso: string) {
 function Content() {
   const params = useSearchParams();
   const id = params.get("id");
+  const token = params.get("token");
   const [data, setData] = useState<{
     id: string;
     clientName: string;
@@ -51,7 +52,7 @@ function Content() {
   async function load() {
     if (!id) return;
     try {
-      const r = await fetch(`/api/appointments/${id}`, { cache: "no-store" });
+      const r = await fetch(`/api/appointments/${id}?token=${encodeURIComponent(token || "")}`, { cache: "no-store" });
       const j = await r.json();
       if (!r.ok) throw new Error(j.error || "Não encontrado");
       setData(j);
@@ -135,7 +136,7 @@ function Content() {
         const res = await fetch("/api/appointments/receipt", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ appointmentId: id, receiptData: reader.result }),
+          body: JSON.stringify({ appointmentId: id, accessToken: token, receiptData: reader.result }),
         });
         const j = await res.json();
         if (!res.ok) {

@@ -4,13 +4,18 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const password = await bcrypt.hash("admin123", 10);
+  const email = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  const rawPassword = process.env.ADMIN_PASSWORD || "";
+  if (!email || !rawPassword || rawPassword.length < 12) {
+    throw new Error("Defina ADMIN_EMAIL e ADMIN_PASSWORD (mínimo 12 caracteres) antes de executar o seed.");
+  }
+  const password = await bcrypt.hash(rawPassword, 12);
 
   await prisma.user.upsert({
-    where: { email: "admin@barbearia.com" },
+    where: { email },
     update: {},
     create: {
-      email: "admin@barbearia.com",
+      email,
       password,
       name: "Administrador",
     },
@@ -66,7 +71,7 @@ async function main() {
     await prisma.product.create({ data: { ...p, establishmentId: est.id } });
   }
 
-  console.log("OK! Login: admin@barbearia.com / admin123");
+  console.log(`Seed concluído para ${email}.`);
 }
 
 main()

@@ -14,6 +14,7 @@ type Item = {
   paymentStatus?: string;
   amountDue?: number;
   hasReceipt?: boolean;
+  accessToken?: string;
   rejectReason?: string | null;
   service: { name: string; price: number; duration: number };
 };
@@ -100,7 +101,7 @@ export default function MeusAgendamentosPage() {
         const res = await fetch("/api/appointments/receipt", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ appointmentId: id, receiptData: reader.result }),
+          body: JSON.stringify({ appointmentId: id, accessToken: items.find((a) => a.id === id)?.accessToken, receiptData: reader.result }),
         });
         const j = await res.json();
         if (!res.ok) setMsg(j.error || "Erro no envio");

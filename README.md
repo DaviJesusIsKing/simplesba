@@ -42,7 +42,7 @@ Plataforma web para barbearia/salão de beleza: site público, agendamento, PIX 
 
 ### Painel admin (URL secreta)
 
-Caminho do painel (não aparece no menu do site):
+Caminho atual do painel (não aparece no menu do site; a segurança real é feita pela autenticação):
 
 ```text
 /p-x7k9qm2
@@ -112,6 +112,8 @@ Na **raiz** do projeto (mesmo nível do `package.json`), crie `.env`:
 DATABASE_URL="postgresql://USER:SENHA@HOST/neondb?sslmode=require"
 NEXTAUTH_SECRET="troque-por-uma-string-longa-e-aleatoria"
 NEXTAUTH_URL="http://localhost:3000"
+ADMIN_EMAIL="admin@seudominio.com"
+ADMIN_PASSWORD="uma-senha-forte-com-pelo-menos-12-caracteres"
 ```
 
 Regras:
@@ -135,14 +137,11 @@ npm run dev
 - Site: http://localhost:3000  
 - Painel: http://localhost:3000/p-x7k9qm2/login  
 
-### 4.4 Login padrão (após o seed)
+### 4.4 Login definido por variáveis de ambiente (após o seed)
 
-| Campo | Valor |
-|-------|--------|
-| E-mail | `admin@barbearia.com` |
-| Senha | `admin123` |
+Defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` no `.env` antes de executar o seed. A senha precisa ter pelo menos 12 caracteres. O projeto não publica mais credenciais administrativas padrão.
 
-**Troque a senha** em seguida: painel → **Senha**.
+**Para trocar a senha depois:** painel → **Senha**.
 
 ### 4.5 Se aparecer erro de coluna / schema
 
@@ -211,7 +210,7 @@ Não é necessário rodar `db push` dentro do Amplify se você já sincronizou o
 ### Admin (primeira vez)
 
 1. Acesse `/p-x7k9qm2/login`
-2. Troque a senha em **Senha**
+2. Use as credenciais definidas em `ADMIN_EMAIL`/`ADMIN_PASSWORD`
 3. **Configurações**: nome, endereço, WhatsApp, dias, horários, almoço
 4. Cadastre chave PIX + QR Code (imagem do app do banco)
 5. Escolha política de pagamento e se mostra produtos
@@ -236,7 +235,7 @@ Não é necessário rodar `db push` dentro do Amplify se você já sincronizou o
 
 ## 7. Segurança
 
-1. Não divulgue a URL `/p-x7k9qm2`
+1. A URL do painel pode ser alterada futuramente; não dependa dela como mecanismo de segurança
 2. Use senha forte (painel → Senha)
 3. Não deixe o painel logado em computador da recepção sem bloqueio
 4. `NEXTAUTH_SECRET` diferente em cada ambiente
@@ -246,10 +245,11 @@ Não é necessário rodar `db push` dentro do Amplify se você já sincronizou o
 
 ## 8. Limitações conhecidas (MVP)
 
-- Comprovantes ficam no banco como imagem (tamanho limitado); volume muito alto pode pedir S3 no futuro
+- Comprovantes, QR e imagens ficam no banco como data URL (tamanho limitado); volume muito alto pede armazenamento de objetos (S3/R2 etc.)
 - Alerta sonoro só com a aba do admin aberta (notificação no celular = etapa futura: Telegram / Web Push)
 - Um fluxo de agenda (sem vários profissionais por cadeira)
 - PIX é manual (chave + comprovante), sem gateway automático
+- O lock anti-double-booking usa PostgreSQL advisory locks; portanto o banco de produção precisa ser PostgreSQL
 
 ---
 

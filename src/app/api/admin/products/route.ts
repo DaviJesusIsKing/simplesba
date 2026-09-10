@@ -1,62 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-
-async function guard() {
-  const session = await getServerSession(authOptions);
-  if (!session) return null;
-  return session;
-}
+import { getAdminSession, parseMoney, parsePositiveInt, sanitizeText, validateImageOrPdfDataUrl } from "@/lib/security";
 
 export async function GET() {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  const items = await prisma.product.findMany({ orderBy: { name: "asc" } });
-  return NextResponse.json(items);
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  return NextResponse.json(await prisma.product.findMany({ orderBy: { name: "asc" } }));
 }
-
-export async function POST(req: NextRequest) {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+async function save(req: NextRequest, id?: string) {
   const body = await req.json();
+  const name = sanitizeText(body.name, 100), description = sanitizeText(body.description, 500);
+  const price = parseMoney(body.price), stock = parsePositiveInt(body.stock ?? 0, 0, 1_000_000);
+  if (!name || price === null || stock === null) return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
+  const imageData = body.imageData ? validateImageOrPdfDataUrl(body.imageData) || "" : "";
+  if (id) return NextResponse.json(await prisma.product.update({ where: { id }, data: { name, description, price, stock, imageData } }));
   const est = await prisma.establishment.findFirst();
-  if (!est) return NextResponse.json({ error: "No establishment" }, { status: 400 });
-  const stock = Math.max(0, body.stock ?? 0);
-  const item = await prisma.product.create({
-    data: {
-      name: body.name,
-      description: body.description,
-      price: body.price,
-      stock,
-      imageData: body.imageData ?? "",
-      establishmentId: est.id,
-    },
-  });
-  return NextResponse.json(item);
+  if (!est) return NextResponse.json({ error: "Estabelecimento não encontrado" }, { status: 400 });
+  return NextResponse.json(await prisma.product.create({ data: { name, description, price, stock, imageData, establishmentId: est.id } }));
 }
-
+export async function POST(req: NextRequest) {
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  try { return await save(req); } catch (e) { console.error(e); return NextResponse.json({ error: "Erro ao criar produto" }, { status: 500 }); }
+}
 export async function PUT(req: NextRequest) {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  const body = await req.json();
-  const stock = Math.max(0, body.stock ?? 0);
-  const item = await prisma.product.update({
-    where: { id },
-    data: {
-      name: body.name,
-      description: body.description,
-      price: body.price,
-      stock,
-      imageData: body.imageData ?? "",
-    },
-  });
-  return NextResponse.json(item);
+  try { return await save(req, id); } catch (e) { console.error(e); return NextResponse.json({ error: "Erro ao atualizar produto" }, { status: 500 }); }
 }
-
 export async function DELETE(req: NextRequest) {
-  if (!(await guard())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  if (!(await getAdminSession())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
-  await prisma.product.delete({ where: { id } });
-  return NextResponse.json({ ok: true });
+  try { await prisma.product.delete({ where: { id } }); return NextResponse.json({ ok: true }); }
+  catch { return NextResponse.json({ error: "Produto não encontrado" }, { status: 404 }); }
 }
