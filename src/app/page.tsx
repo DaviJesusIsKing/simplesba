@@ -1,6 +1,7 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { Scissors, MapPin, Clock, Phone, Instagram } from "lucide-react";
+import { Scissors, MapPin, Clock, Phone, Instagram, ArrowRight } from "lucide-react";
+import { MobileCtaBar } from "@/components/MobileCtaBar";
 import { prisma } from "@/lib/prisma";
 
 export const dynamic = "force-dynamic";
@@ -98,7 +99,7 @@ export default async function HomePage() {
           />
         ) : null}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-[color-mix(in_srgb,var(--bg)_50%,transparent)] to-[var(--bg)]" />
-        <div className="relative mx-auto max-w-6xl px-4 py-16 sm:py-24 text-center">
+        <div className="relative mx-auto max-w-6xl px-4 py-14 sm:py-24 text-center">
           <p className="mb-3 text-xs font-semibold tracking-[0.2em] text-primary">
             BARBEARIA
           </p>
@@ -119,7 +120,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="servicos" className="mx-auto max-w-6xl px-4 py-12">
+      <section id="servicos" className="section-shell mx-auto max-w-6xl px-4 py-12 sm:py-16">
         <h2 className="mb-1 flex items-center gap-2 text-2xl font-bold">
           <Scissors className="text-primary" size={22} /> Cortes
         </h2>
@@ -129,7 +130,7 @@ export default async function HomePage() {
             <a
               key={s.id}
               href={`/agendar?servico=${s.id}`}
-              className="card overflow-hidden !p-0 block active:scale-[0.99] transition"
+              className="card touch-card overflow-hidden !p-0 block"
             >
               {s.imageData ? (
                 <div className="cut-photo-wrap">
@@ -140,16 +141,17 @@ export default async function HomePage() {
                   Sem foto
                 </div>
               )}
-              <div className="p-4">
+              <div className="p-4 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <h3 className="text-lg font-semibold leading-snug">{s.name}</h3>
                   <span className="shrink-0 font-semibold text-primary">
                     R$ {s.price.toFixed(2)}
                   </span>
                 </div>
-                <p className="mt-1.5 text-sm leading-relaxed text-muted">
+                <p className="mt-1.5 text-sm leading-relaxed text-muted line-clamp-2">
                   {s.description}
                 </p>
+                <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-primary">Agendar <ArrowRight size={15} /></span>
               </div>
             </a>
           ))}
@@ -160,7 +162,7 @@ export default async function HomePage() {
       </section>
 
       {est?.showProducts !== false && (
-        <section id="produtos" className="mx-auto max-w-6xl px-4 py-12">
+        <section id="produtos" className="section-shell mx-auto max-w-6xl px-4 py-12 sm:py-16">
           <h2 className="mb-6 text-2xl font-bold">Produtos</h2>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {products.map((p) => (
@@ -199,7 +201,7 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section id="faq" className="mx-auto max-w-6xl px-4 py-12">
+      <section id="faq" className="section-shell mx-auto max-w-6xl px-4 py-12 sm:py-16">
         <h2 className="mb-2 text-2xl font-bold">Dúvidas</h2>
         <p className="text-sm text-muted mb-6">Agendamento e pagamento.</p>
         <div className="space-y-3">
@@ -237,7 +239,7 @@ export default async function HomePage() {
         </div>
       </section>
 
-      <section id="contato" className="mx-auto max-w-6xl px-4 py-12">
+      <section id="contato" className="section-shell mx-auto max-w-6xl px-4 py-12 sm:py-16">
         <h2 className="mb-5 text-2xl font-bold">Onde estamos</h2>
         <div className="grid gap-3">
           {est?.mapsUrl ? (
@@ -302,6 +304,8 @@ export default async function HomePage() {
         phone={est?.phone || ""}
         instagram={est?.instagram || ""}
       />
+
+      <MobileCtaBar whatsapp={whatsapp} />
     </div>
   );
 }

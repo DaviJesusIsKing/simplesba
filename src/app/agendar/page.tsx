@@ -203,25 +203,30 @@ function AgendarForm() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-6 sm:py-10 pb-28 bg-[var(--bg)] text-[var(--fg)]">
+    <div className="min-h-screen px-4 py-4 sm:py-10 pb-28 bg-[var(--bg)] text-[var(--fg)]">
       <div className="mx-auto max-w-lg w-full">
         <Link href="/" className="inline-flex items-center gap-2 text-sm text-[var(--muted-fg)] hover:text-[var(--primary)] mb-6">
           <ArrowLeft size={16} /> Voltar
         </Link>
-        <h1 className="text-2xl font-bold mb-2">Agendar</h1>
-        <p className="text-sm text-[var(--muted-fg)] mb-5">Três passos: corte, dia e seus dados.</p>
+        <div className="mb-5 flex items-center justify-between gap-3">
+          <div>
+            <span className="step-pill">● AGENDAMENTO</span>
+            <h1 className="mt-2 text-2xl font-bold">Agendar horário</h1>
+            <p className="mt-1 text-sm text-[var(--muted-fg)]">Escolha o serviço, dia e horário. Leva menos de 1 minuto.</p>
+          </div>
+        </div>
         {serviceId && services.find((s) => s.id === serviceId) && (
           <div className="mb-4 rounded-xl border border-[var(--primary)]/40 bg-[var(--primary)]/10 px-3 py-2 text-sm">
             Serviço:{" "}
             <strong>{services.find((s) => s.id === serviceId)?.name}</strong>
           </div>
         )}
-        <form onSubmit={submit} className="card space-y-4">
+        <form onSubmit={submit} className="card space-y-5 sm:space-y-6">
           {error && (
             <p className="text-sm text-red-400 bg-red-900/30 rounded-lg px-3 py-2">{error}</p>
           )}
           <div>
-            <label className="label">1. Corte</label>
+            <label className="label">1. Escolha o serviço</label>
             <select
               className="input"
               value={serviceId}
@@ -237,7 +242,7 @@ function AgendarForm() {
             </select>
           </div>
           <div>
-            <label className="label">2. Dia</label>
+            <label className="label">2. Escolha o dia</label>
             <input
               type="date"
               className="input"
@@ -248,7 +253,7 @@ function AgendarForm() {
             />
           </div>
           <div>
-            <label className="label">3. Horário</label>
+            <label className="label">3. Escolha o horário</label>
             {loadingTimes ? (
               <Loader2 className="animate-spin text-[var(--primary)]" size={20} />
             ) : (
@@ -264,7 +269,7 @@ function AgendarForm() {
                     key={t}
                     type="button"
                     onClick={() => setTime(t)}
-                    className={`rounded-lg px-3 py-1.5 text-sm border ${
+                    className={`slot-btn ${
                       time === t
                         ? "slot-btn slot-btn-active"
                         : "slot-btn"
@@ -280,6 +285,7 @@ function AgendarForm() {
             <label className="label">Seu nome</label>
             <input
               className="input"
+              autoComplete="name"
               value={clientName}
               onChange={(e) => setClientName(e.target.value)}
               required
@@ -289,6 +295,8 @@ function AgendarForm() {
             <label className="label">WhatsApp / Telefone</label>
             <input
               className="input"
+              inputMode="tel"
+              autoComplete="tel"
               value={clientPhone}
               onChange={(e) => setClientPhone(e.target.value)}
               placeholder="11999998888"
@@ -308,10 +316,8 @@ function AgendarForm() {
                 <button
                   type="button"
                   onClick={() => setPaymentMethod("local")}
-                  className={`w-full rounded-lg border px-3 py-3 text-sm text-left ${
-                    paymentMethod === "local"
-                      ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                      : "border-[var(--border)]"
+                  className={`choice-card w-full ${
+                    paymentMethod === "local" ? "choice-card-active" : ""
                   }`}
                 >
                   <strong>Pagar na hora (no salão)</strong>
@@ -327,10 +333,10 @@ function AgendarForm() {
                 type="button"
                 onClick={() => hasPix && setPaymentMethod("pix")}
                 disabled={!hasPix}
-                className={`w-full rounded-lg border px-3 py-3 text-sm text-left ${
+                className={`choice-card ${
                   paymentMethod === "pix"
-                    ? "border-[var(--primary)] bg-[var(--primary)]/10"
-                    : "border-[var(--border)]"
+                    ? "choice-card-active"
+                    : ""
                 } ${!hasPix ? "opacity-50" : ""}`}
               >
                 <strong>Pagar antecipado no PIX</strong>
@@ -352,10 +358,10 @@ function AgendarForm() {
                       <button
                         type="button"
                         onClick={() => setPixAmount("half")}
-                        className={`rounded-lg border px-3 py-3 text-sm text-left ${
+                        className={`choice-card ${
                           pixAmount === "half"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/15"
-                            : "border-[var(--border)]"
+                            ? "choice-card-active"
+                            : ""
                         }`}
                       >
                         <strong>Sinal de {chargePercent}%</strong>
@@ -369,10 +375,10 @@ function AgendarForm() {
                       <button
                         type="button"
                         onClick={() => setPixAmount("full")}
-                        className={`rounded-lg border px-3 py-3 text-sm text-left ${
+                        className={`choice-card ${
                           pixAmount === "full"
-                            ? "border-[var(--primary)] bg-[var(--primary)]/15"
-                            : "border-[var(--border)]"
+                            ? "choice-card-active"
+                            : ""
                         }`}
                       >
                         <strong>Valor cheio</strong>
@@ -431,7 +437,7 @@ function AgendarForm() {
             </label>
           </div>
 
-          <div className="pt-2 pb-6">
+          <div className="pt-2 pb-1">
             <button
               type="submit"
               className="btn btn-primary w-full"

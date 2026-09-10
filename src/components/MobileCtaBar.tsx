@@ -1,8 +1,11 @@
+import { CalendarDays, MessageCircle } from "lucide-react";
+
 export function MobileCtaBar({ whatsapp }: { whatsapp: string }) {
   const wa = whatsapp.replace(/\D/g, "");
   return (
     <div className="mobile-cta-bar">
       <a href="/agendar" className="btn btn-primary">
+        <CalendarDays size={18} />
         Agendar
       </a>
       <a
@@ -11,6 +14,7 @@ export function MobileCtaBar({ whatsapp }: { whatsapp: string }) {
         rel="noopener noreferrer"
         className="btn btn-secondary"
       >
+        <MessageCircle size={18} />
         WhatsApp
       </a>
     </div>
